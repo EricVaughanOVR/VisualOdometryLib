@@ -6,11 +6,6 @@
 
 namespace correspondence
 {
-  struct Match
-  {
-    int idx1, idx2, dist;
-  };
-
   typedef uint8_t byte;
 
   struct Image
@@ -21,14 +16,19 @@ namespace correspondence
 
   struct Feature
   {
-    int x, y;
+    int x, y, idx;
+  };
+
+  struct Match
+  {
+    Feature feature1, feature2;
+    int dist;
   };
 
   struct FeatureList
   {
     std::vector<Feature> allFeatures;
     std::vector<Feature> nonmaxFeatures;
-    int allFeaturesNum, nonmaxFeaturesNum;
 
     //Element for each row of the image, value indicates the first element of that row 
     std::vector<int> rowIdxs;
@@ -48,14 +48,15 @@ namespace correspondence
 
   enum eMatchMode
   {
-    MATCH_DENSE,//attempt to match every pixel in the image
-    MATCH_SPARSE//only match pxiels that are marked as points-of-interest
-  };
-
-  enum eMatchMode
-  {
     FLOW,
     STEREO
+  };
+
+  struct MatchingParams
+  {
+    int filterDist;
+    int maxDisparity;
+    int epipolarRange;
   };
 
   struct ExtractCfg
@@ -64,11 +65,10 @@ namespace correspondence
     eMatchMode extractMode;
   };
 
-  struct DescriptorList
+  struct Descriptors
   {
-    byte* descriptors;
+    Image tfmdIm;
     eSamplingWindow type;
-    int numDescriptors;
   };
 };//namespace correspondence
 #endif
