@@ -59,10 +59,11 @@ namespace correspondence
     int epipolarRange;
   };
 
-  struct ExtractCfg
+  struct CensusCfg
   {
     eSamplingWindow type;
     eMatchMode extractMode;
+    int windowSize;
   };
 
   struct Descriptors

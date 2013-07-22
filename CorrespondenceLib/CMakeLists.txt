@@ -1,1 +1,1 @@
-add_library(CorrespondenceLib Detect.hpp Detect.cpp Census.hpp Census.cpp Match.hpp Match.cpp Subpixel.hpp Subpixel.cpp CorrespondenceDefs.hpp fast.hpp fast.cpp fast_9.cpp fast_10.cpp fast_11.cpp fast_12.cpp nonmax.cpp)
+add_library(CorrespondenceLib Detect.hpp Detect.cpp Census.hpp Census.cpp Match.hpp Match.cpp Subpixel.hpp Subpixel.cpp CorrespondenceDefs.hpp)

@@ -2,7 +2,7 @@
 #define CENSUS_HPP
 
 #include "CorrespondenceDefs.hpp"
-#include <xmmintrin.h>
+
 /*
   1. Select descriptor
   2. Perform Census Transform on each image (for every pixel, taking advantage of SIMD)
@@ -11,20 +11,22 @@
 */
 
 //Determines the instruction set, and calls appropriate function
-void censusTranform(const correspondence::Image& im, correspondence::Image& output, 
-                    const correspondence::eSamplingWindow type);
+void censusTranform(const correspondence::Image* im, correspondence::Image* output, 
+                    const correspondence::CensusCfg& cfg);
 
 //If SSE is available
-void censusTransformSSE(const correspondence::Image& im, correspondence::Image& output, 
-                        const correspondence::eSamplingWindow type);
+//TRICKY: im MUST be 16-byte aligned or we will crash!
+void censusTransformSSE(const correspondence::Image* im, correspondence::Image* output, 
+                        const correspondence::CensusCfg& cfg);
 
 //If SSE is not available
-void censusTransformScalar(const correspondence::Image& im, correspondence::Image& output, 
-                        const correspondence::eSamplingWindow type);
+void censusTransformScalar(const correspondence::Image* im, correspondence::Image* output, 
+                        const correspondence::CensusCfg& cfg);
 
 //After calculating the current (i-th) bit of the census descriptor for the current group of 16 pixels,
 //move the results into the census-image, by interleaving the __m128 vectors
-void storeSSE16(const __m128& vect1, const __m128& vect2, correspondence::byte* dst);
+//TRICKY: vect1 and vect2 MUST be 16-byte aligned or we will crash!
+void storeSSE16(const correspondence::byte* vect1, const correspondence::byte& vect2, correspondence::byte* dst);
 
 //Calculate the sampling offsets for the given pixel
 void prepOffsetsLUT(correspondence::eSamplingWindow type, std::vector<int>& offsets);
