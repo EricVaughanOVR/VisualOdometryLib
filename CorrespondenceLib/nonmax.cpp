@@ -1,16 +1,16 @@
 #include <stdlib.h>
-#include "fast.h"
+#include "fast.hpp"
 
-
+using namespace correspondence;
 #define Compare(X, Y) ((X)>=(Y))
 
-xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, int* ret_num_nonmax)
+Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_corners, int* ret_num_nonmax)
 {
 	int num_nonmax=0;
 	int last_row;
 	int* row_start;
 	int i, j;
-	xy* ret_nonmax;
+	Feature* ret_nonmax;
 	const int sz = (int)num_corners; 
 
 	/*Point above points (roughly) to the pixel above the one of interest, if there
@@ -25,7 +25,7 @@ xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, in
 		return 0;
 	}
 
-	ret_nonmax = (xy*)malloc(num_corners * sizeof(xy));
+	ret_nonmax = (Feature*)malloc(num_corners * sizeof(Feature));
 
 	/* Find where each row begins
 	   (the corners are output in raster scan order). A beginning of -1 signifies
@@ -51,7 +51,7 @@ xy* nonmax_suppression(const xy* corners, const int* scores, int num_corners, in
 	for(i=0; i < sz; i++)
 	{
 		int score = scores[i];
-		xy pos = corners[i];
+		Feature pos = corners[i];
 			
 		/*Check left */
 		if(i > 0)

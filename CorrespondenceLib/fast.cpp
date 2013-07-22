@@ -1,6 +1,7 @@
 #include <stdlib.h>
-#include "fast.h"
+#include "fast.hpp"
 
+using namespace correspondence;
 
 Feature* fast9_detect_nonmax(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners)
 {
