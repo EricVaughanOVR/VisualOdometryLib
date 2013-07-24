@@ -18,9 +18,9 @@ namespace correspondence
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride((_cols & 16) + 16)
+        stride(_cols * _pxStep + (_cols & 16) + 16)
     {
-      data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
+      data = (byte*)_mm_malloc(stride * rows, 16);
       zeroMem();
     }
 
@@ -43,17 +43,9 @@ namespace correspondence
       }
     }
 
-    void zeroMem()
+    inline void zeroMem()
     {
-      //TODO check if SSE;
-
-      __m128i* mem = (__m128i*)data;
-      for(int i = 0; i < rows*stride*pxStep; i += 16)
-      {
-        *mem = _mm_setzero_si128();
-        ++mem;;
-      }
-      
+      memset(data, 0, stride * rows * sizeof(byte));     
     }
 
     inline byte* at(const int _row, const int _col) const

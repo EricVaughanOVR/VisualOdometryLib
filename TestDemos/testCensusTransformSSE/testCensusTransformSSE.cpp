@@ -15,10 +15,10 @@ int main(int argc, char* argv)
   cfg.type = eSamplingWindow::SPARSE_16;
   prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
 
-  Image scalarResult(img.rows, img.cols, 8);
+  Image scalarResult(img.rows, img.cols, 2);//pxStep = 2 bytes because descriptor length is 16
   censusTransformScalar(image, cfg, scalarResult);
 
-  Image sseResult(img.rows, img.cols, 8);
+  Image sseResult(img.rows, img.cols, 2);
   censusTransformSSE(image, cfg, sseResult);
 
   return 0;

@@ -53,18 +53,32 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
   std::vector<int> offsetsLUT;
   offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
 
-  byte* resultPtr = rResult.data;
+  byte* resultPtr;
 
   for(int i = static_cast<int>(cfg.windowSize * .5); i < static_cast<int>(im.rows - cfg.windowSize * .5); ++i)
   {
+    resultPtr = rResult.at(i, cfg.windowSize * .5);//Set resultPtr to beginning of the row
     for(int j = static_cast<int>(cfg.windowSize * .5); j < static_cast<int>(im.cols - cfg.windowSize * .5); ++j)
     {
       //Now we have chosen a pixel to examine
-      for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
+      int bitCount = 0;
+      for(int k = 0; k < static_cast<int>(offsetsLUT.size() - 2); ++k)
       {
         //Do comparison here
-        *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
+        if(bitCount < 7)
+        {
+          *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
+          ++bitCount;
+        }
+        else
+        {
+          *++resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
+          bitCount = 1;
+        }
+        
       }
+      //Do final comparison here, w/o the shift
+      *++resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT.back()) > *im.at(i, j)));
     }
   }
 }
