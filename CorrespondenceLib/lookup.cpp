@@ -102,7 +102,7 @@ void lut_dense(std::vector<int>& offsets, const int stride, const int size)
   offsets.resize(size * size - 1);
   int row = static_cast<int>(-size * .5);
   int col = row;
-  for(int i = 0; i < offsets.size(); ++i)
+  for(int i = 0; i < static_cast<int>(offsets.size()); ++i)
   {
     if(i == static_cast<int>(offsets.size() * .5))
       ++col;
