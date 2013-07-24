@@ -47,18 +47,45 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
   }
 }
 
+
+//Temporary, use to check accuracy of new function, then use the new function as ground-truth
+uint16_t transform9x9(const byte* img, byte* pixelLoc, std::vector<int>& m_sampleOffsets_9x9)
+{
+  uint16_t result = 0;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[0]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[1]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[2]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[3]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[4]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[5]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[6]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[7]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[8]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[9]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[10]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[11]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[12]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[13]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[14]) > *pixelLoc)) << 1;
+  result = (result + (*(pixelLoc + m_sampleOffsets_9x9[15]) > *pixelLoc));
+
+  return result;
+}
+
 void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
   //Copy pattern to local var
   std::vector<int> offsetsLUT;
   offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
 
+  int edgeSize = static_cast<int>(cfg.windowSize * .5);
+
   byte* resultPtr;
 
-  for(int i = static_cast<int>(cfg.windowSize * .5); i < static_cast<int>(im.rows - cfg.windowSize * .5); ++i)
+  for(int i = edgeSize; i < im.rows - edgeSize; ++i)
   {
-    resultPtr = rResult.at(i, cfg.windowSize * .5);//Set resultPtr to beginning of the row
-    for(int j = static_cast<int>(cfg.windowSize * .5); j < static_cast<int>(im.cols - cfg.windowSize * .5); ++j)
+    resultPtr = rResult.at(i, edgeSize);//Set resultPtr to beginning of the row
+    for(int j = edgeSize; j < im.cols - edgeSize; ++j)
     {
       //Now we have chosen a pixel to examine
       int bitCount = 0;
@@ -70,7 +97,7 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
           *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
           ++bitCount;
         }
-        else
+        else//When we have converted a byte, increment resultPtr
         {
           *++resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
           bitCount = 1;
