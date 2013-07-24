@@ -12,21 +12,54 @@ namespace correspondence
   struct Image
   {
     int rows, cols, stride, pxStep;
-    std::shared_ptr<byte> data;
+    byte* data;
 
-    Image(const int _rows, const int _cols, const int _stride, const int _pxStep)
+    Image(const int _rows, const int _cols, const int _pxStep)
       : rows(_rows),
         cols(_cols),
-        stride(_stride),
         pxStep(_pxStep),
-        data((byte*)_mm_malloc(stride * rows * pxStep, 16))
+        stride((_cols & 16) + 16)
     {
+      data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
+      zeroMem();
+    }
+
+    //Copies the supplied data into this object's aligned memory
+    Image(const int _rows, const int _cols, const int _pxStep, const byte* _data,
+      const int _dataLen)
+      : rows(_rows),
+        cols(_cols),
+        pxStep(_pxStep),
+        stride(_cols + (_cols & 16) + 16)
+    {
+      data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
+      byte* dataPtr = data;
+      int offset = 0;
+      for(int i = 0; i < rows; ++i)
+      {
+        memcpy(dataPtr, _data + offset, _cols);
+        offset += _cols * sizeof(byte);
+        dataPtr += stride;
+      }
+    }
+
+    void zeroMem()
+    {
+      //TODO check if SSE;
+
+      __m128i* mem = (__m128i*)data;
+      for(int i = 0; i < rows*stride*pxStep; i += 16)
+      {
+        *mem = _mm_setzero_si128();
+        ++mem;;
+      }
+      
     }
 
     inline byte* at(const int _row, const int _col) const
     {
       //Note: only handles a positive value for stride
-      return data.get() + _row * stride + _col;
+      return data + _row * stride + _col;
     };
   };
 

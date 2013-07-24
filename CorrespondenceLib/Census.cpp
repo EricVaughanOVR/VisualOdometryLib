@@ -53,7 +53,7 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
   std::vector<int> offsetsLUT;
   offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
 
-  byte* resultPtr = rResult.data.get();
+  byte* resultPtr = rResult.data;
 
   for(int i = static_cast<int>(cfg.windowSize * .5); i < static_cast<int>(im.rows - cfg.windowSize * .5); ++i)
   {
@@ -63,6 +63,7 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
       for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
       {
         //Do comparison here
+        *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
       }
     }
   }
