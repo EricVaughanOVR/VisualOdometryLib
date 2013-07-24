@@ -3,12 +3,11 @@
 
 using namespace correspondence;
 
-byte* censusTransform(const Image& im, Image& output, eSamplingWindow type)
+void censusTransform(const Image& im, Image& output, eSamplingWindow type, byte** pResult)
 {
-  return new byte;//placeholder
 }
 
-byte* censusTransformSSE(const Image& im, const CensusCfg& cfg)
+void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
   //Copy pattern to local var
   std::vector<int> offsetsLUT;
@@ -46,5 +45,25 @@ byte* censusTransformSSE(const Image& im, const CensusCfg& cfg)
     {
     }
   }
-  return new byte;//placeholder
+}
+
+void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult)
+{
+  //Copy pattern to local var
+  std::vector<int> offsetsLUT;
+  offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
+
+  byte* resultPtr = rResult.data.get();
+
+  for(int i = cfg.windowSize * .5; i < im.rows - cfg.windowSize * .5; ++i)
+  {
+    for(int j = static_cast<int>(cfg.windowSize * .5); j < im.cols - cfg.windowSize * .5; ++j)
+    {
+      //Now we have chosen a pixel to examine
+      for(int k = 0; k < offsetsLUT.size(); ++k)
+      {
+        //Do comparison here
+      }
+    }
+  }
 }

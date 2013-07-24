@@ -3,7 +3,7 @@
 
 #include <stdint.h>
 #include <vector>
-
+#include <memory>
 
 namespace correspondence
 {
@@ -11,13 +11,22 @@ namespace correspondence
 
   struct Image
   {
-    byte* data;
-    int rows, cols, stride;
+    int rows, cols, stride, pxStep;
+    std::shared_ptr<byte> data;
+
+    Image(const int _rows, const int _cols, const int _stride, const int _pxStep)
+      : rows(_rows),
+        cols(_cols),
+        stride(_stride),
+        pxStep(_pxStep),
+        data((byte*)_mm_malloc(stride * rows * pxStep, 16))
+    {
+    }
 
     inline byte* at(const int _row, const int _col) const
     {
       //Note: only handles a positive value for stride
-      return data + _row * stride + _col;
+      return data.get() + _row * stride + _col;
     };
   };
 

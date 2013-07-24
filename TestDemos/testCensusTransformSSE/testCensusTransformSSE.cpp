@@ -8,32 +8,19 @@ using namespace cv;
 int main(int argc, char* argv)
 {
   Mat img = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
-  Image image;
-  image.cols = img.cols;
-  image.rows = img.rows;
-  image.stride = img.step[0];
-  image.data = img.data;
+  Image image(img.cols, img.rows, img.step[0], 8);
+  image.data.reset(img.data);
 
   CensusCfg cfg;
 
-  cfg.type = eSamplingWindow::DENSE_3;
+  cfg.type = eSamplingWindow::SPARSE_16;
   prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
 
-  cfg.type = eSamplingWindow::DENSE_5;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
+  Image scalarResult(img.cols, img.rows, img.step[0], 8);
+  censusTransformScalar(image, cfg, scalarResult);
 
-  cfg.type = eSamplingWindow::DENSE_7;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
-
-  cfg.type = eSamplingWindow::DENSE_9;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
-
-  cfg.type = eSamplingWindow::DENSE_11;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
-
-  cfg.type = eSamplingWindow::DENSE_13;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
-  censusTransformSSE(image, cfg);
+  Image sseResult(img.cols, img.rows, img.step[0], 8);
+  censusTransformSSE(image, cfg, sseResult);
 
   return 0;
 }

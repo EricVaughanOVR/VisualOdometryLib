@@ -11,14 +11,17 @@
 */
 
 //Determines the instruction set, and calls appropriate function
-correspondence::byte* censusTranform(const correspondence::Image& im, const correspondence::CensusCfg& cfg);
+void censusTranform(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
+                    correspondence::Image& rResult);
 
 //If SSE is available
 //TRICKY: im MUST be 16-byte aligned or we will crash!
-correspondence::byte* censusTransformSSE(const correspondence::Image& im, const correspondence::CensusCfg& cfg);
+void censusTransformSSE(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
+                        correspondence::Image& rResult);
 
 //If SSE is not available
-correspondence::byte* censusTransformScalar(const correspondence::Image& im, const correspondence::CensusCfg& cfg);
+void censusTransformScalar(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
+                           correspondence::Image& rResult);
 
 //After calculating the current (i-th) bit of the census descriptor for the current group of 16 pixels,
 //move the results into the census-image, by interleaving the __m128 vectors
