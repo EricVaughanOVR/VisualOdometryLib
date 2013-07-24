@@ -4,6 +4,7 @@
 #include <stdint.h>
 #include <vector>
 
+
 namespace correspondence
 {
   typedef uint8_t byte;
@@ -12,6 +13,12 @@ namespace correspondence
   {
     byte* data;
     int rows, cols, stride;
+
+    inline byte* at(const int _row, const int _col) const
+    {
+      //Note: only handles a positive value for stride
+      return data + _row * stride + _col;
+    };
   };
 
   struct Feature
@@ -36,7 +43,8 @@ namespace correspondence
 
   enum eSamplingWindow
   {
-    SPARSE_8,//8 or 16 sampling points
+    SPARSE_8,//8, 12 or 16 sampling points
+    SPARSE_12,
     SPARSE_16,
     DENSE_3,//various sizes of dense sampling windows
     DENSE_5,
@@ -61,9 +69,18 @@ namespace correspondence
 
   struct CensusCfg
   {
+    //Use what sampling pattern
     eSamplingWindow type;
-    eMatchMode extractMode;
+    //Dimension of the square sampling pattern.  e.g. the SPARSE_16 pattern has an equivalent window of a 9x9
     int windowSize;
+    //The LUT of the sampling pattern
+    std::vector<int> pattern;
+    //Dense or Sparse
+    eMatchMode matchMode;
+    //sampling pattern of the correlation window
+    eSamplingWindow corrType;
+    //The lookup table of the correlation window
+    std::vector<int> corrPattern;
   };
 
   struct Descriptors
