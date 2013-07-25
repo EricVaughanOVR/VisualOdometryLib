@@ -89,7 +89,7 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
     {
       //Now we have chosen a pixel to examine
       int bitCount = 0;
-      for(int k = 0; k < static_cast<int>(offsetsLUT.size() - 2); ++k)
+      for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
       {
         //Do comparison here
         if(bitCount < 7)
@@ -99,13 +99,12 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
         }
         else//When we have converted a byte, increment resultPtr
         {
-          *++resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
-          bitCount = 1;
+          *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j)));
+          bitCount = 0;
+          ++resultPtr;
         }
         
       }
-      //Do final comparison here, w/o the shift
-      *++resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT.back()) > *im.at(i, j)));
     }
   }
 }
