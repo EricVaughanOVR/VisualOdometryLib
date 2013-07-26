@@ -23,6 +23,27 @@ void censusTransformSSE(const correspondence::Image& im, const correspondence::C
 void censusTransformScalar(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
                            correspondence::Image& rResult);
 
+inline void censusTransformSinglePx(const correspondence::byte* objectPx, const std::vector<int>& offsetsLUT,
+                                    correspondence::byte** pResultPx)
+{
+  int bitCount = 0;
+  for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
+  {
+    //Do comparison here
+    if(bitCount < 7)
+    {
+      **pResultPx = (**pResultPx + (*(objectPx + offsetsLUT[k]) > *objectPx)) << 1;
+      ++bitCount;
+    }
+    else//When we have converted a byte, increment resultPtr
+    {
+      **pResultPx = (**pResultPx + (*(objectPx + offsetsLUT[k]) > *objectPx));
+      bitCount = 0;
+      ++*pResultPx;
+    }
+  }
+};
+
 //After calculating the current (i-th) bit of the census descriptor for the current group of 16 pixels,
 //move the results into the census-image, by interleaving the __m128 vectors
 //TRICKY: vect1 and vect2 MUST be 16-byte aligned or we will crash!

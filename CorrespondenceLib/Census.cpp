@@ -75,36 +75,22 @@ uint16_t transform9x9(const byte* img, byte* pixelLoc, std::vector<int>& m_sampl
 void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
   //Copy pattern to local var
-  std::vector<int> offsetsLUT;
-  offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
+  //std::vector<int> offsetsLUT;
+  //offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
 
   int edgeSize = static_cast<int>(cfg.windowSize * .5);
+  int pxSize = cfg.pattern.size() / 8;
 
   byte* resultPtr;
 
   for(int i = edgeSize; i < im.rows - edgeSize; ++i)
   {
-    resultPtr = rResult.at(i, edgeSize);//Set resultPtr to beginning of the row
+    resultPtr = rResult.at(i, edgeSize * pxSize);//Set resultPtr to beginning of the row
     for(int j = edgeSize; j < im.cols - edgeSize; ++j)
     {
       //Now we have chosen a pixel to examine
       int bitCount = 0;
-      for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
-      {
-        //Do comparison here
-        if(bitCount < 7)
-        {
-          *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j))) << 1;
-          ++bitCount;
-        }
-        else//When we have converted a byte, increment resultPtr
-        {
-          *resultPtr = (*resultPtr + (*(im.at(i, j) + offsetsLUT[k]) > *im.at(i, j)));
-          bitCount = 0;
-          ++resultPtr;
-        }
-        
-      }
+      censusTransformSinglePx(im.at(i, j), cfg.pattern, &resultPtr);
     }
   }
 }
