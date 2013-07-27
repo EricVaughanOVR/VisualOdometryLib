@@ -10,6 +10,17 @@ int main(int argc, char* argv)
   byte* result = (byte*)_mm_malloc(32 * sizeof(byte), 16);
   storeSSE16(&vect1, &vect2, result);
 
+  for(int i = 0; i < 16; ++i)
+  {
+    std::cout<<(int)vect1.m128i_i8[i]<<std::endl;
+  }
+  for(int i = 0; i < 16; ++i)
+  {
+    std::cout<<(int)vect2.m128i_i8[i]<<std::endl;
+  }
+
+  std::cout<<"__________"<<std::endl;
+
   for(int i = 0; i < 32; ++i)
   {
     std::cout<<(int)*(result + i)<<std::endl;

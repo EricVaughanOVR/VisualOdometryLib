@@ -27,6 +27,7 @@ inline void censusTransformSinglePx(const correspondence::byte* objectPx, const 
                                     correspondence::byte** pResultPx)
 {
   int bitCount = 0;
+  uint8_t bitmask = 1;
   for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
   {
     //Do comparison here

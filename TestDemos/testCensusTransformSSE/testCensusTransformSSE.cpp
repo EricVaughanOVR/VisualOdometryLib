@@ -8,8 +8,8 @@ using namespace cv;
 
 int main(int argc, char* argv)
 {
-  Mat img = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
-  //Mat img = imread("../../../Resources/ImageData/CensusTestImage.png", CV_LOAD_IMAGE_GRAYSCALE);
+  //Mat img = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
+  Mat img = imread("../../../Resources/ImageData/CensusTestImage.png", CV_LOAD_IMAGE_GRAYSCALE);
   double t = (double)cv::getTickCount();
   Image image(img.rows, img.cols, 1, (byte*)img.data, img.cols * img.step[1] + img.rows * img.step[0]);
   t = ((double)getTickCount() - t)/getTickFrequency();
