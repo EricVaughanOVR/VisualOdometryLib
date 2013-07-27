@@ -1,4 +1,5 @@
 #include <xmmintrin.h>
+#include <algorithm>
 #include "Census.hpp"
 
 using namespace correspondence;
@@ -12,36 +13,34 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
   //Copy pattern to local var
   std::vector<int> offsetsLUT;
   offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
+  //Convert offset terms from bytes to __m128i
+  for(int i = 0; i < offsetsLUT.size(); ++i)
+  {
+    offsetsLUT[i] /= 16;
+  }
 
   int edgeSize = static_cast<int>(cfg.windowSize * .5);
   int pxSize = cfg.pattern.size() / 8;
 
-  __m128i* byteStr = (__m128i*)_mm_malloc(256 * cfg.pattern.size() / 8, 16);
   for(int i = edgeSize; i < im.rows - edgeSize; ++i)
   {
-    //Set resultPtr to beginning of the row
-    __m128i* resultPtr = (__m128i*)rResult.at(i, edgeSize * pxSize);
-
-    int j = edgeSize; 
-    for(j; j < im.cols - edgeSize; j += 16)
+    //Set to beginning of the row
+    //struct 'Image' ensures that beginning of row is always aligned
+    __m128i* resultPtr = (__m128i*)rResult.at(i, 0);
+    __m128i* objectPx = (__m128i*)im.at(i,0);
+    int j = 0;
+    for(j; j < im.stride; j += 16)//Will alwyas divide evenly
     {
-      //Load 16 Object Pixels
-      __m128i* objectPx = (__m128i*)im.at(i,j);//TODO must ensure that we load on 16 byte boundary
       for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
       {
         //Load the next pixel of each center pixel's sampling window
-        __m128i* samplePx = objectPx + offsetsLUT[k];//TODO must ensure that we load on 16 byte boundary
+        __m128i* samplePx = (__m128i*)im.at(i, j) + offsetsLUT[k];
         //do comparison
-        *byteStr = _mm_cmpgt_epi8(*objectPx, *samplePx);
-        ++byteStr;//Increment for next 16 sample point compares
+        *resultPtr = _mm_cmpgt_epi8(*objectPx, *samplePx);
+        ++resultPtr;//Increment for next 16 sample point compares
       }
       //Store the result into rResult
       //TODO Unpack
-    }
-    //TODO need to rewind j if remainder is not 0
-    //Finish the remainder of the row with scalarTransform
-    for(j; j < im.cols - cfg.windowSize * .5; ++j)
-    {
     }
   }
 }
