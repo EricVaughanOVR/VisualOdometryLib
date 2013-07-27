@@ -1,1 +1,2 @@
 add_subdirectory(testCensusTransformSSE)
+add_subdirectory(testStoreSSE16)

@@ -82,8 +82,7 @@ namespace correspondence
 
   enum eSamplingWindow
   {
-    SPARSE_8,//8, 12 or 16 sampling points
-    SPARSE_12,
+    SPARSE_8,//8 or 16 sampling points
     SPARSE_16,
     DENSE_3,//various sizes of dense sampling windows
     DENSE_5,

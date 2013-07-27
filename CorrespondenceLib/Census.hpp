@@ -47,7 +47,7 @@ inline void censusTransformSinglePx(const correspondence::byte* objectPx, const 
 //After calculating the current (i-th) bit of the census descriptor for the current group of 16 pixels,
 //move the results into the census-image, by interleaving the __m128 vectors
 //TRICKY: vect1 and vect2 MUST be 16-byte aligned or we will crash!
-void storeSSE16(const correspondence::byte* vect1, const correspondence::byte& vect2, correspondence::byte* dst);
+void storeSSE16(const __m128i* vect1, const __m128i* vect2, correspondence::byte* dst);
 
 //Calculate the sampling offsets for the given pixel
 void prepOffsetsLUT(const correspondence::eSamplingWindow type, std::vector<int>& offsets, int& windowSize, 

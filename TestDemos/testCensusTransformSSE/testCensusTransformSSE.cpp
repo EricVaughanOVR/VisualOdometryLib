@@ -28,14 +28,20 @@ int main(int argc, char* argv)
   std::cout<<"Scalar Census Transform "<<t/1.0<<std::endl;
 
   Image sseResult(img.rows, img.cols, 2);
+  t = (double)cv::getTickCount();
   censusTransformSSE(image, cfg, sseResult);
+  t = ((double)getTickCount() - t)/getTickFrequency();
+  std::cout<<"SSE Census Transform "<<t/1.0<<std::endl;
 
   namedWindow("Original Image", CV_WINDOW_KEEPRATIO);
   namedWindow("Census Image", CV_WINDOW_KEEPRATIO);
+  namedWindow("SSE Census Image", CV_WINDOW_KEEPRATIO);
   Mat censusImg(Size(img.cols, img.rows), CV_16U, scalarResult.data, scalarResult.stride);
+  Mat sseCensusImg(Size(img.cols, img.rows), CV_16U, sseResult.data, sseResult.stride);
 
   imshow("Census Image", censusImg);
   imshow("Original Image", img);
+  imshow("SSE Census Image", sseCensusImg);
   waitKey();
 
   return 0;
