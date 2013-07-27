@@ -11,18 +11,18 @@ namespace correspondence
 
   struct Image
   {
-    int rows, cols, stride, pxStep;
+    int rows, cols, pxStep, stride;
     byte* data;
 
     Image(const int _rows, const int _cols, const int _pxStep)
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride(_cols * _pxStep + 16 - (_cols % 16))
+        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16))
     {
-      data = (byte*)_mm_malloc(stride * rows, 16);
+      data = (byte*)_mm_malloc(stride * sizeof(byte) * rows * pxStep, 16);
       zeroMem();
-    }
+    };
 
     //Copies the supplied data into this object's aligned memory
     Image(const int _rows, const int _cols, const int _pxStep, const byte* _data,
@@ -30,7 +30,7 @@ namespace correspondence
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride(_cols + 16 - (_cols % 16))
+        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16))
     {
       data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
       byte* dataPtr = data;
@@ -41,12 +41,17 @@ namespace correspondence
         offset += _cols * sizeof(byte);
         dataPtr += stride;
       }
+    };
+
+    ~Image()
+    {
+      _mm_free(data);
     }
 
     inline void zeroMem()
     {
       memset(data, 0, stride * rows * sizeof(byte));     
-    }
+    };
 
     inline byte* at(const int _row, const int _col) const
     {
