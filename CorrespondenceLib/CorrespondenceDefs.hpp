@@ -115,7 +115,7 @@ namespace correspondence
     std::vector<int> pattern;
     //Dense or Sparse
     eMatchMode matchMode;
-    //sampling pattern of the correlation window
+    //Sampling pattern of the correlation window
     eSamplingWindow corrType;
     //The lookup table of the correlation window
     std::vector<int> corrPattern;

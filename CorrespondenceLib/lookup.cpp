@@ -10,11 +10,6 @@ void prepOffsetsLUT(correspondence::eSamplingWindow type, std::vector<int>& offs
     lut_sparse8(offsets, stride);
     windowSize = 9;
   }
-  else if(type == SPARSE_12)
-  {
-    lut_sparse12(offsets, stride);
-    windowSize = 9;
-  }
   else if(type == SPARSE_16)
   {
     lut_sparse16(offsets, stride);
