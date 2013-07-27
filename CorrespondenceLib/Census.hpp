@@ -27,18 +27,17 @@ inline void censusTransformSinglePx(const correspondence::byte* objectPx, const 
                                     correspondence::byte** pResultPx)
 {
   int bitCount = 0;
-  uint8_t bitmask = 1;
   for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
   {
     //Do comparison here
+    **pResultPx += (*(objectPx + offsetsLUT[k]) > *objectPx) << bitCount;
     if(bitCount < 7)
     {
-      **pResultPx = (**pResultPx + (*(objectPx + offsetsLUT[k]) > *objectPx)) << 1;
       ++bitCount;
     }
     else//When we have converted a byte, increment resultPtr
     {
-      **pResultPx = (**pResultPx + (*(objectPx + offsetsLUT[k]) > *objectPx));
+      //**pResultPx = (**pResultPx + (*(objectPx + offsetsLUT[k]) > *objectPx));
       bitCount = 0;
       ++*pResultPx;
     }
