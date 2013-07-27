@@ -22,6 +22,9 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
   int edgeSize = static_cast<int>(cfg.windowSize * .5);
   int pxSize = cfg.pattern.size() / 8;
 
+  __m128i bitconst = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  __m128i bitmask = bitconst;
+
   for(int i = edgeSize; i < im.rows - edgeSize; ++i)
   {
     //Set to beginning of the row
@@ -36,8 +39,8 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
         //Load the next pixel of each center pixel's sampling window
         __m128i* samplePx = (__m128i*)im.at(i, j) + offsetsLUT[k];
         //do comparison
-        *resultPtr = _mm_cmpgt_epi8(*objectPx, *samplePx);
-        ++resultPtr;//Increment for next 16 sample point compares
+        *resultPtr = _mm_or_si128(*resultPtr, _mm_and_si128(_mm_cmpgt_epi8(*objectPx, *samplePx), bitmask));//only load one bit for each comparison
+        //TODO only increment every 8 bits ++resultPtr;//Increment for next 16 sample point compares
       }
       //Store the result into rResult
       //TODO Unpack
