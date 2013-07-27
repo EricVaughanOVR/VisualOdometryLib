@@ -18,7 +18,7 @@ namespace correspondence
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride(_cols * _pxStep + (_cols & 16) + 16)
+        stride(_cols * _pxStep + 16 - (_cols % 16))
     {
       data = (byte*)_mm_malloc(stride * rows, 16);
       zeroMem();
@@ -30,7 +30,7 @@ namespace correspondence
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride(_cols + (_cols & 16) + 16)
+        stride(_cols + 16 - (_cols % 16))
     {
       data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
       byte* dataPtr = data;
