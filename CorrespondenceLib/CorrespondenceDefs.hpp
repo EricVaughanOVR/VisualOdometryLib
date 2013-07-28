@@ -56,7 +56,7 @@ namespace correspondence
     inline byte* at(const int _row, const int _col) const
     {
       //Note: only handles a positive value for stride
-      return data + _row * stride + _col;
+      return data + _row * stride + _col * pxStep;
     };
   };
 
