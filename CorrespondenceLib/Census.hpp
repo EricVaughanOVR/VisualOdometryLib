@@ -30,7 +30,7 @@ inline void censusTransformSinglePx(const correspondence::byte* objectPx, const 
   for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
   {
     //Do comparison here
-    **pResultPx += (*(objectPx + offsetsLUT[k]) > *objectPx) << bitCount;
+    **pResultPx += (*(objectPx + offsetsLUT[k]) >= *objectPx) << bitCount;
     if(bitCount < 7)
     {
       ++bitCount;

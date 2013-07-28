@@ -42,10 +42,13 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
         //Load the next pixel of each center pixel's sampling window
         __m128i samplePx = _mm_loadu_si128((__m128i*)(im.at(i, 0) + offsetsLUT[k]));
         //do comparison
-        *resultPtr = _mm_or_si128(*resultPtr, _mm_and_si128(_mm_cmpgt_epi8(samplePx, *objectPx), bitmask));//only load one bit for each comparison
+        //TRICKY To do 16 at a time, it's necessary to do some funny business, because _mm_cmpgt_epi8 is signed only.
+        *resultPtr = _mm_or_si128(*resultPtr, _mm_and_si128(_mm_cmpeq_epi8(_mm_max_epu8(samplePx, *objectPx), samplePx), bitmask));
+
+        //*resultPtr = _mm_or_si128(*resultPtr, _mm_and_si128(_mm_cmpgt_epi8(samplePx, *objectPx), bitmask));//only load one bit for each comparison
         bitmask = _mm_add_epi8(bitmask, bitmask);//multiply bitmask by 2, to target the next bit of each descriptor
         ++bitCount;
-        if(bitCount == 7)
+        if(bitCount == 8)
         {
           ++resultPtr;
           bitmask = bitconst;
@@ -54,7 +57,7 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
       }
       ++objectPx;
       //Store the result into rResult
-      storeSSE16(resultPtr, resultPtr - 1, rResult.at(i,j));
+      storeSSE16(resultPtr - 2, resultPtr - 1, rResult.at(i,j));
     }
   }
 }
@@ -81,7 +84,8 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
 
 void storeSSE16(const __m128i* vect1, const __m128i* vect2, byte* dst)
 {
-  __m128i* dstMMX = (__m128i*)dst;
-  *dstMMX = _mm_unpacklo_epi8(*vect1, *vect2);
-  *++dstMMX = _mm_unpackhi_epi8(*vect1, *vect2);
+  __m128i* dstReg = (__m128i*)dst;
+  *dstReg = _mm_unpacklo_epi8(*vect1, *vect2);
+  *++dstReg = _mm_unpackhi_epi8(*vect1, *vect2);
+
 }
