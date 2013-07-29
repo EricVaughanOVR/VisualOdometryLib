@@ -11,7 +11,10 @@ int main(int argc, char* argv)
   Mat img = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
   //Mat img = imread("../../../Resources/ImageData/CensusTestImage_24x24.png", CV_LOAD_IMAGE_GRAYSCALE);
   double t = (double)cv::getTickCount();
-  Image image(img.rows, img.cols, 1, (byte*)img.data, img.cols * img.step[1] + img.rows * img.step[0]);
+  pt offset;
+  offset.x = 0;
+  offset.y = 0;
+  Image image(img.rows, img.cols, 1, offset, (byte*)img.data);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"memcpy align image "<<t/1.0<<std::endl;
 
@@ -20,14 +23,14 @@ int main(int argc, char* argv)
   cfg.type = eSamplingPattern::SPARSE_16;
   prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
 
-  Image scalarResult(img.rows, img.cols, 2);//pxStep = 16 descriptor length is 16 bits
+  Image scalarResult(img.rows, img.cols, 2, offset);//pxStep = 16 descriptor length is 16 bits
  
   t = (double)cv::getTickCount();
   censusTransformScalar(image, cfg, scalarResult);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"Scalar Census Transform "<<t/1.0<<std::endl;
 
-  Image sseResult(img.rows, img.cols, 2);
+  Image sseResult(img.rows, img.cols, 2, offset);
   t = (double)cv::getTickCount();
   censusTransformSSE(image, cfg, sseResult);
   t = ((double)getTickCount() - t)/getTickFrequency();

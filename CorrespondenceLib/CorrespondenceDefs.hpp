@@ -9,28 +9,36 @@ namespace correspondence
 {
   typedef uint8_t byte;
 
+  struct pt
+  {
+    int x, y;
+  };
+
   struct Image
   {
     int rows, cols, pxStep, stride;
     byte* data;
+    pt offset;
 
-    Image(const int _rows, const int _cols, const int _pxStep)
+    Image(const int _rows, const int _cols, const int _pxStep, const pt _offset)
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16))
+        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
+        offset(_offset)
     {
       data = (byte*)_mm_malloc(stride * sizeof(byte) * rows * pxStep, 16);
       zeroMem();
     };
 
     //Copies the supplied data into this object's aligned memory
-    Image(const int _rows, const int _cols, const int _pxStep, const byte* _data,
-      const int _dataLen)
+    Image(const int _rows, const int _cols, const int _pxStep, const pt _offset, 
+      const byte* _data)
       : rows(_rows),
         cols(_cols),
         pxStep(_pxStep),
-        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16))
+        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
+        offset(_offset)
     {
       data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
       byte* dataPtr = data;
@@ -104,8 +112,17 @@ namespace correspondence
 
   struct MatchingParams
   {
+    //Flow or Stereo
+    eMatchMode mode;
+    //Sampling pattern of the correlation window
+    eCorrelationWindow corrType;
+    //The lookup table of the correlation window
+    std::vector<int> corrPattern;
+    //What is the maximum normalized Hamming Distance to accept?
     int filterDist;
+    //Disparity constraint in pixels
     int maxDisparity;
+    //Epsilon for epipolar constraint, in pixels
     int epipolarRange;
   };
 
@@ -117,12 +134,6 @@ namespace correspondence
     int windowSize;
     //The LUT of the sampling pattern
     std::vector<int> pattern;
-    //Dense or Sparse
-    eMatchMode matchMode;
-    //Sampling pattern of the correlation window
-    eCorrelationWindow corrType;
-    //The lookup table of the correlation window
-    std::vector<int> corrPattern;
   };
 
   struct Descriptors
