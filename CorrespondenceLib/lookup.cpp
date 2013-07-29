@@ -21,6 +21,29 @@ void prepOffsetsLUT(correspondence::eSamplingPattern type, std::vector<int>& off
   }
 }
 
+void prepOffsetsLUT(correspondence::eCorrelationWindow type, std::vector<int>& offsets, int& windowSize,
+                    const int stride)
+{
+  switch(type)
+  {
+  case DENSE_5 :
+    windowSize = 5;
+    break;
+  case DENSE_7 :
+    windowSize = 7;
+    break;
+  case DENSE_9 :
+    windowSize = 9;
+    break;
+  case DENSE_11 :
+    windowSize = 11;
+    break;
+  case DENSE_13 :
+    windowSize = 13;
+  }
+    lut_dense(offsets, stride, windowSize);
+}
+
 void lut_sparse8(std::vector<int>& offsets, const int stride)
 {
   offsets.resize(8);
