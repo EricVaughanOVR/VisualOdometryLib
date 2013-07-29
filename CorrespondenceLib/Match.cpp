@@ -10,7 +10,7 @@ void matchDense(const correspondence::Descriptors& censusIm1, const corresponden
 }
 
 void matchSparse(const Descriptors& censusIm1, const Descriptors& censusIm2,
-                 const eMatchMode, const eCorrelationWindow, const eSamplingPattern pattern,
+                 const MatchingParams& params, const CensusCfg& cfg, const eSamplingPattern pattern,
                  const std::vector<Feature>& kps1, 
                  const std::vector<Feature>& kps2,
                  std::vector<Match>& rMatches)
@@ -26,7 +26,7 @@ void matchSparse(const Descriptors& censusIm1, const Descriptors& censusIm2,
     //Call PrepRegion for the current feature
       //Create subregion to look for matches within
 
-      //get a list of possibleMatches(Features), and a subImage which contains all of them, as well as their correlation windows
+      //get a list of potentialMatches(Features)
 
     //Call matchFeature, to get the best match from the pool of potential matches
 
@@ -34,7 +34,7 @@ void matchSparse(const Descriptors& censusIm1, const Descriptors& censusIm2,
   }
 }
 
-void prepRegion(const Feature& feature1, const Descriptors& censusIm2, Descriptors& rSubImage)
+void getPotentialMatches(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches)
 {
   //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
   //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
@@ -47,16 +47,15 @@ uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)
   return 0;
 }
 
-uint32_t calcSHD(const correspondence::Image& region1, const correspondence::Image& region2)
+uint32_t calcSHD(const Image& region1, const Image& region2,
+                 const Feature& kp1, const Feature& kp2)
 {
   //1. For each pixel in the correlationWindow of each image, calculate the Hamming Distance and add it to the total
   //2. When finished, return the total
   return 0;
 }
 
-correspondence::Match matchFeature(const correspondence::Descriptors& im1, const correspondence::Descriptors& im2, 
-                                  const correspondence::Feature& kp1, 
-                                  const std::vector<correspondence::Feature>& kps2)
+correspondence::Match matchFeature(const Image& im1, const Feature& kp1, const Descriptors& kps2)
 {
   //1. For each possible matching Feature from the right-hand window, compute the SHD
   //2. Compare the latest SHD to the minimum, if the new one is less, update it and the Feature that it is associated with

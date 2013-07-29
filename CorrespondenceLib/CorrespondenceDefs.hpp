@@ -138,7 +138,7 @@ namespace correspondence
 
   struct Descriptors
   {
-    Image tfmdIm;
+    //TODOVector of pointers to the first kp in each row of the subImg that we are considering
     eSamplingPattern type;
   };
 };//namespace correspondence
