@@ -1,1 +1,1 @@
-#include "detect.hpp"
+#include "Detect.hpp"

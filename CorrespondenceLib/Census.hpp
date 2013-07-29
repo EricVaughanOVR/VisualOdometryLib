@@ -3,13 +3,6 @@
 
 #include "CorrespondenceDefs.hpp"
 
-/*
-  1. Select descriptor
-  2. Perform Census Transform on each image (for every pixel, taking advantage of SIMD)
-  3. Run FAST on the original (un-transformed) images
-  4. Match the images
-*/
-
 //Determines the instruction set, and calls appropriate function
 void censusTranform(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
                     correspondence::Image& rResult);

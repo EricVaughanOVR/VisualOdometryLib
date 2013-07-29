@@ -25,6 +25,4 @@ correspondence::Match matchFeature(const correspondence::Descriptors& im1, const
                                   const correspondence::Feature& kp1, 
                                   const std::vector<correspondence::Feature>& kps2);
 
-
-
 #endif
