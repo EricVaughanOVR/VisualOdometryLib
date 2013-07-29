@@ -4,11 +4,11 @@
 #include "CorrespondenceDefs.hpp"
 
 void matchDense(const correspondence::Descriptors& censusIm1, const correspondence::Descriptors& censusIm2,
-                const correspondence::eMatchMode, const correspondence::eSamplingWindow, 
+                const correspondence::eMatchMode, const correspondence::eSamplingPattern, 
                 std::vector<correspondence::Match>& rMatches);
 
 void matchSparse(const correspondence::Descriptors& censusIm1, const correspondence::Descriptors& censusIm2,
-                 const correspondence::eMatchMode, const correspondence::eSamplingWindow, 
+                 const correspondence::eMatchMode, const correspondence::eSamplingPattern, 
                  const std::vector<correspondence::Feature>& kps1, 
                  const std::vector<correspondence::Feature>& kps2,
                  std::vector<correspondence::Match>& rMatches);

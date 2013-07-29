@@ -5,27 +5,24 @@ using namespace correspondence;
 
 int main(int argc, char* argv)
 {
-  __m128i vect1 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-  __m128i vect2 = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15};
-  byte* result = (byte*)_mm_malloc(32 * sizeof(byte), 16);
-  storeSSE16(&vect1, &vect2, result);
+  byte* vector = (byte*)_mm_malloc(32 * sizeof(byte), 16);
+  __m128i* v = (__m128i*)vector;
+  *v = _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  *(v + 1) = _mm_set_epi8(15, 14, 13, 12, 11, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0);
+  
+  storeSSE16(v, v);
 
+  byte* result = vector;
+  bool success = true;
   for(int i = 0; i < 16; ++i)
   {
-    std::cout<<(int)vect1.m128i_i8[i]<<std::endl;
-  }
-  for(int i = 0; i < 16; ++i)
-  {
-    std::cout<<(int)vect2.m128i_i8[i]<<std::endl;
+    if(i != (int)*(result++) || i != (int)*(result++))
+      success = false;
   }
 
-  std::cout<<"__________"<<std::endl;
-
-  for(int i = 0; i < 32; ++i)
-  {
-    std::cout<<(int)*(result + i)<<std::endl;
-  }
-  _mm_free(result);
+  (success) ? std::cout<<"testStoreSSE16 succeeded"<<std::endl : std::cout<<"testStoreSSE16 failed"<<std::endl;
+ 
+  _mm_free(vector);
   std::cin.ignore();
 
   return 0;

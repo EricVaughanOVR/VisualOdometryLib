@@ -80,11 +80,15 @@ namespace correspondence
     std::vector<int> rowIdxs;
   };
 
-  enum eSamplingWindow
+  enum eSamplingPattern
   {
     SPARSE_8,//8 or 16 sampling points
     SPARSE_16,
-    DENSE_3,//various sizes of dense sampling windows
+    DENSE_3
+  };
+
+  enum eCorrelationWindow
+  {
     DENSE_5,
     DENSE_7,
     DENSE_9,
@@ -108,7 +112,7 @@ namespace correspondence
   struct CensusCfg
   {
     //Use what sampling pattern
-    eSamplingWindow type;
+    eSamplingPattern type;
     //Dimension of the square sampling pattern.  e.g. the SPARSE_16 pattern has an equivalent window of a 9x9
     int windowSize;
     //The LUT of the sampling pattern
@@ -116,7 +120,7 @@ namespace correspondence
     //Dense or Sparse
     eMatchMode matchMode;
     //Sampling pattern of the correlation window
-    eSamplingWindow corrType;
+    eCorrelationWindow corrType;
     //The lookup table of the correlation window
     std::vector<int> corrPattern;
   };
@@ -124,7 +128,7 @@ namespace correspondence
   struct Descriptors
   {
     Image tfmdIm;
-    eSamplingWindow type;
+    eSamplingPattern type;
   };
 };//namespace correspondence
 #endif

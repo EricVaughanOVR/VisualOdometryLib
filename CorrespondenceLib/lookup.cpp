@@ -2,7 +2,7 @@
 
 using namespace correspondence;
 
-void prepOffsetsLUT(correspondence::eSamplingWindow type, std::vector<int>& offsets, int& windowSize,
+void prepOffsetsLUT(correspondence::eSamplingPattern type, std::vector<int>& offsets, int& windowSize,
                     const int stride)
 {
   if(type == SPARSE_8)
@@ -15,28 +15,8 @@ void prepOffsetsLUT(correspondence::eSamplingWindow type, std::vector<int>& offs
     lut_sparse16(offsets, stride);
     windowSize = 9;
   }
-  else
+  else if(type == DENSE_3)
   {
-    switch(type)
-    {
-    case DENSE_3 :
-      windowSize = 3;
-      break;
-    case DENSE_5 :
-      windowSize = 5;
-      break;
-    case DENSE_7 :
-      windowSize = 7;
-      break;
-    case DENSE_9 :
-      windowSize = 9;
-      break;
-    case DENSE_11 :
-      windowSize = 11;
-      break;
-    case DENSE_13 :
-      windowSize = 13;
-    }
     lut_dense(offsets, stride, windowSize);
   }
 }
@@ -52,23 +32,6 @@ void lut_sparse8(std::vector<int>& offsets, const int stride)
   offsets[5] = 2 * stride + 3;
   offsets[6] = 3 * stride - 3;
   offsets[7] = 3 * stride;
-}
-
-void lut_sparse12(std::vector<int>& offsets, const int stride)
-{
-  offsets.resize(12);
-  offsets[0] = -4 * stride;
-  offsets[1] = -3 * stride - 2;
-  offsets[2] = -3 * stride + 2;
-  offsets[3] = -2 * stride - 3;
-  offsets[4] = -2 * stride + 4;
-  offsets[5] = -4;
-  offsets[6] = 3;
-  offsets[7] = 2 * stride - 3;
-  offsets[8] = 2 * stride + 4;
-  offsets[9] = 3 * stride;
-  offsets[10] = 4 * stride - 2;
-  offsets[11] = 4 * stride + 2;
 }
 
 void lut_sparse16(std::vector<int>& offsets, const int stride)

@@ -4,7 +4,7 @@
 
 using namespace correspondence;
 
-void censusTransform(const Image& im, Image& output, eSamplingWindow type, byte** pResult)
+void censusTransform(const Image& im, Image& output, eSamplingPattern type, byte** pResult)
 {
 }
 
@@ -30,7 +30,7 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
     for(int j = 0; j < im.stride; j += 16)//Will always divide evenly
     {
       //struct 'Image' ensures that each row is always aligned
-      __m128i* resultPtr = (__m128i*)(rResult.at(i, j) + 16);
+      __m128i* resultPtr = (__m128i*)(rResult.at(i, j));
       __m128i* objectPx = (__m128i*)im.at(i, j);
     
       bitmask = bitconst;
@@ -53,7 +53,8 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
         }
       }
       //Store the result into rResult
-      storeSSE16(resultPtr - 2, resultPtr - 1, rResult.at(i,j));
+      if(cfg.type == SPARSE_16)
+        storeSSE16((__m128i*)rResult.at(i, j), (__m128i*)rResult.at(i, j));
     }
   }
 }
@@ -78,10 +79,9 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
   }
 }
 
-void storeSSE16(const __m128i* vect1, const __m128i* vect2, byte* dst)
+void storeSSE16(__m128i* src, __m128i* dst)
 {
-  __m128i* dstReg = (__m128i*)dst;
-  *dstReg = _mm_unpacklo_epi8(*vect1, *vect2);
-  *++dstReg = _mm_unpackhi_epi8(*vect1, *vect2);
-
+  __m128i tmp = _mm_unpacklo_epi8(*src, *(src + 1));
+  *(dst + 1) = _mm_unpackhi_epi8(*src, *(src + 1));
+  _mm_store_si128(dst, tmp);
 }
