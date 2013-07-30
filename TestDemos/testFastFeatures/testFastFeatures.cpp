@@ -29,34 +29,27 @@ int main( int argc, char** argv )
     return -1;
   }
 
-  int numCorners = 0, numNonmax = 0;
-  
   double t = (double)getTickCount();
-  Feature* totFeatures = new Feature;
-  Feature* nonmax_features = new Feature;
-  fast9_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, 
-    &numNonmax, &nonmax_features, &numCorners, &totFeatures);
+  FeatureList corners;
+  fast10_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, corners);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout << "detection time [s]: " << t/1.0 << std::endl;
 
   Mat imgColor;
   cvtColor(img, imgColor, CV_GRAY2RGB);
 
-  for(int i = 0; i < numCorners; ++i)
+  for(size_t i = 0; i < corners.allFeatures.size(); ++i)
   {
-	  cv::Point pt((totFeatures + i)->x, (totFeatures + i)->y);
+	  cv::Point pt(corners.allFeatures[i].x, corners.allFeatures[i].y);
 	  cv::line(imgColor, pt, pt, CV_RGB(255, 0, 0), 1); 
   }
-  for(int i = 0; i < numNonmax; ++i)
+  for(int i = 0; i < corners.nonmaxFeatures.size(); ++i)
   {
-	  cv::Point pt((nonmax_features + i)->x, (nonmax_features + i)->y);
+	  cv::Point pt(corners.nonmaxFeatures[i].x, corners.nonmaxFeatures[i].y);
 	  cv::line(imgColor, pt, pt, CV_RGB(0, 255, 0), 1); 
   }
 
   namedWindow("Features", CV_WINDOW_KEEPRATIO);
   imshow("Features", imgColor);
   waitKey(0);
-
-  delete totFeatures;
-  delete nonmax_features;
 }
