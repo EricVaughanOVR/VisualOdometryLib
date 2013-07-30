@@ -34,26 +34,47 @@ void matchSparse(const Descriptors& censusIm1, const Descriptors& censusIm2,
   }
 }
 
-void getPotentialStereo(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches, const MatchingParams& params)
+void getPotentialStereo(const Feature& kp1, FeatureList& kps2, Descriptors& rPotMatches, const MatchingParams& params)
 {
-  //What are the beginning and ending rows?
+  //What are the beginning and ending row numbers?
   //What are the beginning and ending columns?
+  int firstRow = kp1.y - params.epipolarRange * .5;
+  int lastRow = kp1.y + params.epipolarRange * .5;
+  int firstCol = kp1.x - params.maxDisparity;
+  int lastCol = kp1.x;
+
+  rPotMatches.kps.clear();
+  int numRows = lastRow - firstRow;
+  rPotMatches.kps.reserve(numRows);
+
+  for(int i = 0; i < numRows; ++i)
+  {
+    KpRow row;
+    std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[kp1.y];
+    while(iter->x < firstCol)
+      ++iter;
+    row.begin = iter;
+    while(iter->x < lastCol)
+      ++iter;
+    row.end = iter;
+    rPotMatches.kps.push_back(row);
+  }
 }
 
-void getPotentialFlow(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches, const MatchingParams& params)
+void getPotentialFlow(const Feature& kp1, FeatureList& kps2, Descriptors& rPotMatches, const MatchingParams& params)
 {
 
 }
 
-void getPotentialMatches(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches, const MatchingParams& params)
+void getPotentialMatches(const Feature& kp1, FeatureList& kps2, Descriptors& rPotMatches, const MatchingParams& params)
 {
   //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
   //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
   //3. If Flow, choose a region surrounding the left-hand Feature and capture potential matches within it.  Then, capture all of the pixels required for an SHD of each potential match
   if(params.mode == STEREO)
-    getPotentialStereo(kp1, censusIm2, rPotMatches, params);
+    getPotentialStereo(kp1, kps2, rPotMatches, params);
   else
-    getPotentialFlow(kp1, censusIm2, rPotMatches, params);
+    getPotentialFlow(kp1, kps2, rPotMatches, params);
 }
 
 uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)

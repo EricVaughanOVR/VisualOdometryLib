@@ -13,8 +13,8 @@ void matchSparse(const correspondence::Descriptors& censusIm1, const corresponde
                  const std::vector<correspondence::Feature>& kps2,
                  std::vector<correspondence::Match>& rMatches);
 
-void getPotentialMatches(const correspondence::Feature& kp1, const correspondence::Image& censusIm2,
-                correspondence::Descriptors& rPotMatches);
+void getPotentialMatches(const correspondence::Feature& kp1, FeatureList& kps2,
+                         correspondence::Descriptors& rPotMatches);
 
 uint32_t calcHammingDist(const uint32_t _1, const uint32_t _2);
 
