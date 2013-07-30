@@ -31,7 +31,7 @@ int main( int argc, char** argv )
 
   double t = (double)getTickCount();
   FeatureList corners;
-  fast10_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, corners);
+  fast9_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, corners);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout << "detection time [s]: " << t/1.0 << std::endl;
 
@@ -43,7 +43,7 @@ int main( int argc, char** argv )
 	  cv::Point pt(corners.allFeatures[i].x, corners.allFeatures[i].y);
 	  cv::line(imgColor, pt, pt, CV_RGB(255, 0, 0), 1); 
   }
-  for(int i = 0; i < corners.nonmaxFeatures.size(); ++i)
+  for(int i = 0; i < static_cast<int>(corners.nonmaxFeatures.size()); ++i)
   {
 	  cv::Point pt(corners.nonmaxFeatures[i].x, corners.nonmaxFeatures[i].y);
 	  cv::line(imgColor, pt, pt, CV_RGB(0, 255, 0), 1); 

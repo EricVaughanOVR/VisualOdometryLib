@@ -2351,6 +2351,8 @@ void fast10_detect(const byte* im, int xsize, int ysize, int stride, int b, Feat
 	int rsize=512;
 	int pixel[16];
 	int x, y;
+  corners.rowIdxs.clear();
+  corners.rowIdxs.resize(ysize, -1);
 
 	make_offsets(pixel, stride);
 
@@ -4643,12 +4645,15 @@ void fast10_detect(const byte* im, int xsize, int ysize, int stride, int b, Feat
 			if(corners.allFeatures.size() == rsize)
 			{
 				rsize*=2;
-				corners.allFeatures.resize(rsize);
+				corners.allFeatures.reserve(rsize);
 			}
       Feature kp;
       kp.x = x;
       kp.y = y;
       corners.allFeatures.push_back(kp);
+
+      if(corners.rowIdxs[y] == -1)
+        corners.rowIdxs[y] = corners.allFeatures.size() - 1;
 		}
 }
 

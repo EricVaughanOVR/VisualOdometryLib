@@ -34,11 +34,26 @@ void matchSparse(const Descriptors& censusIm1, const Descriptors& censusIm2,
   }
 }
 
-void getPotentialMatches(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches)
+void getPotentialStereo(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches, const MatchingParams& params)
+{
+  //What are the beginning and ending rows?
+  //What are the beginning and ending columns?
+}
+
+void getPotentialFlow(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches, const MatchingParams& params)
+{
+
+}
+
+void getPotentialMatches(const Feature& kp1, const Image& censusIm2, Descriptors& rPotMatches, const MatchingParams& params)
 {
   //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
   //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
   //3. If Flow, choose a region surrounding the left-hand Feature and capture potential matches within it.  Then, capture all of the pixels required for an SHD of each potential match
+  if(params.mode == STEREO)
+    getPotentialStereo(kp1, censusIm2, rPotMatches, params);
+  else
+    getPotentialFlow(kp1, censusIm2, rPotMatches, params);
 }
 
 uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)

@@ -1,5 +1,5 @@
 #ifndef CORRESPONDENCEDEFS_HPP
-#define CORRESPONDENCEDEGS_HPP
+#define CORRESPONDENCEDEFS_HPP
 
 #include <stdint.h>
 #include <vector>
