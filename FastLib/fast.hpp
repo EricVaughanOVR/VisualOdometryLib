@@ -1,5 +1,5 @@
-#ifndef FAST_H
-#define FAST_H
+#ifndef FAST_HPP
+#define FAST_HPP
 
 #include "CorrespondenceDefs.hpp"
 
@@ -34,6 +34,5 @@ void fast12_detect_both(const correspondence::byte* im, int xsize, int ysize, in
   correspondence::Feature** ret_nonmax_corners, int* ret_num_corners,  correspondence::Feature** ret_corners);
 
 correspondence::Feature* nonmax_suppression(const correspondence::Feature* corners, const int* scores, int num_corners, int* ret_num_nonmax);
-
 
 #endif

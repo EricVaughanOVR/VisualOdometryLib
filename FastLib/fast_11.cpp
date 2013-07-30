@@ -1,8 +1,8 @@
 /*This is mechanically generated code*/
 #include <stdlib.h>
+#include "fast.hpp"
 
-typedef struct { int x, y; } xy; 
-typedef unsigned char byte;
+using namespace correspondence;
 
 int fast11_corner_score(const byte* p, const int pixel[], int bstart)
 {    
@@ -1957,7 +1957,7 @@ static void make_offsets(int pixel[], int row_stride)
 
 
 
-int* fast11_score(const byte* i, int stride, xy* corners, int num_corners, int b)
+int* fast11_score(const byte* i, int stride, Feature* corners, int num_corners, int b)
 {	
 	int* scores = (int*)malloc(sizeof(int)* num_corners);
 	int n;
@@ -1972,15 +1972,15 @@ int* fast11_score(const byte* i, int stride, xy* corners, int num_corners, int b
 }
 
 
-xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners)
+Feature* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners)
 {
 	int num_corners=0;
-	xy* ret_corners;
+	Feature* ret_corners;
 	int rsize=512;
 	int pixel[16];
 	int x, y;
 
-	ret_corners = (xy*)malloc(sizeof(xy)*rsize);
+	ret_corners = (Feature*)malloc(sizeof(Feature)*rsize);
 	make_offsets(pixel, stride);
 
 	for(y=3; y < ysize - 3; y++)
@@ -3894,7 +3894,7 @@ xy* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* 
 			if(num_corners == rsize)
 			{
 				rsize*=2;
-				ret_corners = (xy*)realloc(ret_corners, sizeof(xy)*rsize);
+				ret_corners = (Feature*)realloc(ret_corners, sizeof(Feature)*rsize);
 			}
 
 			ret_corners[num_corners].x = x;
