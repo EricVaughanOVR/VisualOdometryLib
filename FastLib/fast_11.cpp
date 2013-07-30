@@ -1955,32 +1955,25 @@ static void make_offsets(int pixel[], int row_stride)
         pixel[15] = -1 + row_stride * 3;
 }
 
-
-
-int* fast11_score(const byte* i, int stride, Feature* corners, int num_corners, int b)
+void fast11_score(const byte* i, int stride, FeatureList& corners, int b)
 {	
-	int* scores = (int*)malloc(sizeof(int)* num_corners);
 	int n;
 
 	int pixel[16];
 	make_offsets(pixel, stride);
 
-    for(n=0; n < num_corners; n++)
-        scores[n] = fast11_corner_score(i + corners[n].y*stride + corners[n].x, pixel, b);
-
-	return scores;
+  for(n=0; n < corners.allFeatures.size(); n++)
+    corners.allFeatures[n].score = fast11_corner_score(i + corners.allFeatures[n].y*stride + corners.allFeatures[n].x, pixel, b);
 }
 
 
-Feature* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, int* ret_num_corners)
+void fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, FeatureList& corners)
 {
-	int num_corners=0;
-	Feature* ret_corners;
+	corners.allFeatures.clear();
 	int rsize=512;
 	int pixel[16];
 	int x, y;
 
-	ret_corners = (Feature*)malloc(sizeof(Feature)*rsize);
 	make_offsets(pixel, stride);
 
 	for(y=3; y < ysize - 3; y++)
@@ -3891,20 +3884,16 @@ Feature* fast11_detect(const byte* im, int xsize, int ysize, int stride, int b, 
            continue;
          else
           continue;
-			if(num_corners == rsize)
+			if(corners.allFeatures.size() == rsize)
 			{
 				rsize*=2;
-				ret_corners = (Feature*)realloc(ret_corners, sizeof(Feature)*rsize);
+				corners.allFeatures.resize(rsize);
 			}
-
-			ret_corners[num_corners].x = x;
-			ret_corners[num_corners].y = y;
-			num_corners++;
+      Feature kp;
+      kp.x = x;
+      kp.y = y;
+      corners.allFeatures.push_back(kp);
 		}
-	
-	*ret_num_corners = num_corners;
-	return ret_corners;
-
 }
 
 

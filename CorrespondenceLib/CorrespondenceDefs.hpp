@@ -70,7 +70,7 @@ namespace correspondence
 
   struct Feature
   {
-    int x, y, idx;
+    int x, y, idx, score;
   };
 
   struct Match
@@ -136,9 +136,15 @@ namespace correspondence
     std::vector<int> pattern;
   };
 
+  struct KpRow
+  {
+    std::vector<Feature>::iterator begin;
+    std::vector<Feature>::iterator end;
+  };
+
   struct Descriptors
   {
-    //TODOVector of pointers to the first kp in each row of the subImg that we are considering
+    std::vector<KpRow> kps;
     eSamplingPattern type;
   };
 };//namespace correspondence

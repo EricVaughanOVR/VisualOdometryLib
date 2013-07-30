@@ -4,14 +4,13 @@
 using namespace correspondence;
 #define Compare(X, Y) ((X)>=(Y))
 
-Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_corners, int* ret_num_nonmax)
+void nonmax_suppression(FeatureList& corners)
 {
-	int num_nonmax=0;
+  int num_nonmax;
 	int last_row;
 	int* row_start;
 	int i, j;
-	Feature* ret_nonmax;
-	const int sz = (int)num_corners; 
+	const int sz = (int)corners.allFeatures.size();
 
 	/*Point above points (roughly) to the pixel above the one of interest, if there
     is a feature there.*/
@@ -19,18 +18,18 @@ Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_c
 	int point_below = 0;
 
 	
-	if(num_corners < 1)
+	if(sz < 1)
 	{
-		*ret_num_nonmax = 0;
-		return 0;
+		corners.nonmaxFeatures.clear();
+		return;
 	}
 
-	ret_nonmax = (Feature*)malloc(num_corners * sizeof(Feature));
+  corners.nonmaxFeatures.reserve(corners.allFeatures.size());
 
 	/* Find where each row begins
 	   (the corners are output in raster scan order). A beginning of -1 signifies
 	   that there are no corners on that row. */
-	last_row = corners[num_corners-1].y;
+	last_row = corners.allFeatures[sz-1].y;
 	row_start = (int*)malloc((last_row+1)*sizeof(int));
 
 	for(i=0; i < last_row+1; i++)
@@ -38,11 +37,11 @@ Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_c
 	
 	{
 		int prev_row = -1;
-		for(i=0; i< num_corners; i++)
-			if(corners[i].y != prev_row)
+		for(i=0; i< sz; i++)
+			if(corners.allFeatures[i].y != prev_row)
 			{
-				row_start[corners[i].y] = i;
-				prev_row = corners[i].y;
+				row_start[corners.allFeatures[i].y] = i;
+				prev_row = corners.allFeatures[i].y;
 			}
 	}
 	
@@ -50,17 +49,17 @@ Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_c
 	
 	for(i=0; i < sz; i++)
 	{
-		int score = scores[i];
-		Feature pos = corners[i];
+		int score = corners.allFeatures[i].score;
+		Feature pos = corners.allFeatures[i];
 			
 		/*Check left */
 		if(i > 0)
-			if(corners[i-1].x == pos.x-1 && corners[i-1].y == pos.y && Compare(scores[i-1], score))
+			if(corners.allFeatures[i-1].x == pos.x-1 && corners.allFeatures[i-1].y == pos.y && Compare(corners.allFeatures[i-1].score, score))
 				continue;
 			
 		/*Check right*/
 		if(i < (sz - 1))
-			if(corners[i+1].x == pos.x+1 && corners[i+1].y == pos.y && Compare(scores[i+1], score))
+			if(corners.allFeatures[i+1].x == pos.x+1 && corners.allFeatures[i+1].y == pos.y && Compare(corners.allFeatures[i+1].score, score))
 				continue;
 			
 		/*Check above (if there is a valid row above)*/
@@ -68,19 +67,19 @@ Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_c
 		{
 			/*Make sure that current point_above is one
 			  row above.*/
-			if(corners[point_above].y < pos.y - 1)
+			if(corners.allFeatures[point_above].y < pos.y - 1)
 				point_above = row_start[pos.y-1];
 			
 			/*Make point_above point to the first of the pixels above the current point,
 			  if it exists.*/
-			for(; corners[point_above].y < pos.y && corners[point_above].x < pos.x - 1; point_above++)
+			for(; corners.allFeatures[point_above].y < pos.y && corners.allFeatures[point_above].x < pos.x - 1; point_above++)
 			{}
 			
 			
-			for(j=point_above; corners[j].y < pos.y && corners[j].x <= pos.x + 1; j++)
+			for(j=point_above; corners.allFeatures[j].y < pos.y && corners.allFeatures[j].x <= pos.x + 1; j++)
 			{
-				int x = corners[j].x;
-				if( (x == pos.x - 1 || x ==pos.x || x == pos.x+1) && Compare(scores[j], score))
+				int x = corners.allFeatures[j].x;
+				if( (x == pos.x - 1 || x ==pos.x || x == pos.x+1) && Compare(corners.allFeatures[j].score, score))
 					goto cont;
 			}
 			
@@ -89,29 +88,25 @@ Feature* nonmax_suppression(const Feature* corners, const int* scores, int num_c
 		/*Check below (if there is anything below)*/
 		if(pos.y != last_row && row_start[pos.y + 1] != -1 && point_below < sz) /*Nothing below*/
 		{
-			if(corners[point_below].y < pos.y + 1)
+			if(corners.allFeatures[point_below].y < pos.y + 1)
 				point_below = row_start[pos.y+1];
 			
 			/* Make point below point to one of the pixels belowthe current point, if it
 			   exists.*/
-			for(; point_below < sz && corners[point_below].y == pos.y+1 && corners[point_below].x < pos.x - 1; point_below++)
+			for(; point_below < sz && corners.allFeatures[point_below].y == pos.y+1 && corners.allFeatures[point_below].x < pos.x - 1; point_below++)
 			{}
 
-			for(j=point_below; j < sz && corners[j].y == pos.y+1 && corners[j].x <= pos.x + 1; j++)
+			for(j=point_below; j < sz && corners.allFeatures[j].y == pos.y+1 && corners.allFeatures[j].x <= pos.x + 1; j++)
 			{
-				int x = corners[j].x;
-				if( (x == pos.x - 1 || x ==pos.x || x == pos.x+1) && Compare(scores[j],score))
+				int x = corners.allFeatures[j].x;
+				if( (x == pos.x - 1 || x ==pos.x || x == pos.x+1) && Compare(corners.allFeatures[j].score, score))
 					goto cont;
 			}
 		}
 		
-		ret_nonmax[num_nonmax++] = corners[i];
+		corners.nonmaxFeatures.push_back(corners.allFeatures[i]);
 		cont:
 			;
 	}
-
-	free(row_start);
-	*ret_num_nonmax = num_nonmax;
-	return ret_nonmax;
 }
 
