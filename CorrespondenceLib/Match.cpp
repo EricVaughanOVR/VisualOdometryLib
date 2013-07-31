@@ -88,7 +88,35 @@ void getPotentialMatches(const Feature& kp1, FeatureList& kps2, const CensusCfg&
 
 uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)
 {
+  //XOR the desc
+  uint32_t newBitStr = _1 ^ _2;
+
+  //From Bit Twiddling Hacks
+  uint32_t result; // store the total here
+  static const int S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
+  static const int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
+
+  result = newBitStr - ((newBitStr >> 1) & B[0]);
+  result = ((result >> S[1]) & B[1]) + (result & B[1]);
+  result = ((result >> S[2]) + result) & B[2];
+  result = ((result >> S[3]) + result) & B[3];
+  result = ((result >> S[4]) + result) & B[4];
+
+  return result;
+}
+
+int calcHammingDistSSE(__m128i* _1, __m128i* _2, __m128i* _mask_lo, __m128i* _mask_popcnt)
+{
+  //Use this one if PSHUFB
   //Use PSHUFB to calculate the popcount, with a 4-bit LUT
+  __m128i v = _mm_xor_si128(*_1, *_2);
+  __m128i lo = _mm_and_si128(v, *_mask_lo);
+  __m128i hi = _mm_and_si128(_mm_srli_epi16(v, 4), *_mask_lo);
+  lo = _mm_shuffle_epi8(*_mask_popcnt, lo);
+  hi = _mm_shuffle_epi8(*_mask_popcnt, hi);
+  //_mm_add_
+  _mm_add_epi8(lo, hi);
+
   return 0;
 }
 

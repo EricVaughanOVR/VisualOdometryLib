@@ -52,8 +52,8 @@ int main(int argc, char* argv)
 
   namedWindow("Matches", CV_WINDOW_KEEPRATIO);
 
-  Mat matcheImg;
-  imshow("Matches", matches);
+  Mat matchImg;
+  imshow("Matches", matchImg);
   waitKey();
 
   return 0;
