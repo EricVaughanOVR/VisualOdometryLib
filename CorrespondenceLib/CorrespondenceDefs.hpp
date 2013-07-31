@@ -132,20 +132,16 @@ namespace correspondence
     eSamplingPattern type;
     //Dimension of the square sampling pattern.  e.g. the SPARSE_16 pattern has an equivalent window of a 9x9
     int windowSize;
+    int imgRows, imgCols;
     //The LUT of the sampling pattern
     std::vector<int> pattern;
+    MatchingParams params;
   };
 
   struct KpRow
   {
     std::vector<Feature>::iterator begin;
     std::vector<Feature>::iterator end;
-  };
-
-  struct Descriptors
-  {
-    std::vector<KpRow> kps;
-    eSamplingPattern type;
   };
 };//namespace correspondence
 #endif
