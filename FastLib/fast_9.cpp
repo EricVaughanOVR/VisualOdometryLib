@@ -2971,7 +2971,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
   corners.allFeatures.clear();
 	int rsize=512;
 	int pixel[16];
-	int x, y;
+	int x, y, n = 0;
   corners.rowIdxs.clear();
   corners.rowIdxs.resize(ysize, -1);
 
@@ -5893,6 +5893,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
       Feature kp;
       kp.x = x;
       kp.y = y;
+      kp.idx = n++;//TRICKY post-increment
 			corners.allFeatures.push_back(kp);
 
       if(corners.rowIdxs[y] == -1)

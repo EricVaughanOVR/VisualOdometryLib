@@ -38,8 +38,8 @@ int main(int argc, char* argv)
 
   //Do Feature Detection
   FeatureList kpsL, kpsR;
-  fast10_detect_nonmax(imageL.data, imageL.cols, imageL.rows, imageL.stride, 15, kpsL);
-  fast10_detect(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
+  fast10_detect_both(imageL.data, imageL.cols, imageL.rows, imageL.stride, 15, kpsL);
+  fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
   cfg.params.mode = STEREO;
