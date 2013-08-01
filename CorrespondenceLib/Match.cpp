@@ -142,12 +142,12 @@ uint32_t calcHammingDistSSE(__m128i _1, __m128i _2)
   hi = _mm_unpackhi_epi8(v, zeroes);
 
   total = _mm_add_epi32(total, _mm_madd_epi16(lo, ones));//sums adjacent u16 values and unpacks to u32
-  /*total = _mm_add_epi32(total, _mm_madd_epi16(hi, ones));
+  total = _mm_add_epi32(total, _mm_madd_epi16(hi, ones));
   
   //Shift the remaining entries to the least-significant entry and sum
   total = _mm_add_epi32(total, _mm_srli_si128(total, 8));
   total = _mm_add_epi32(total, _mm_srli_si128(total, 4));
-  */
+  
   uint32_t popcnt = _mm_cvtsi128_si32(total);//Extract the least-significant int
   
   return popcnt;
@@ -165,8 +165,8 @@ uint32_t calcSHD(const Image& census1, const Image& census2,
   for(int i = -windowEdges; i < windowEdges; ++i)
   {
     //Load a row into a register and shift it so that the data matches the window size
-    __m128i _1 = _mm_load_si128((__m128i*)census1.at(kp1.y + i, kp1.x));
-    __m128i _2 = _mm_load_si128((__m128i*)census2.at(kp2.y + i, kp2.x));
+    __m128i _1 = _mm_loadu_si128((__m128i*)census1.at(kp1.y + i, kp1.x));
+    __m128i _2 = _mm_loadu_si128((__m128i*)census2.at(kp2.y + i, kp2.x));
     
     
     switch(windowSize)

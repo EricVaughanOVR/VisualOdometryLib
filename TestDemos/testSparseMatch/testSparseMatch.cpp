@@ -5,6 +5,7 @@
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
 using namespace correspondence;
 using namespace cv;
@@ -44,22 +45,54 @@ int main(int argc, char* argv)
   //Do Stereo Matching
   
   cfg.params.mode = STEREO;
-  cfg.params.corrType = DENSE_11;
-  cfg.params.windowSize = 11;
+  cfg.params.corrType = DENSE_5;
+  cfg.params.windowSize = 5;
   cfg.params.epipolarRange = 1;
-  cfg.params.filterDist = 40;
+  cfg.params.filterDist = 10;
   std::vector<Match> matches;
   cfg.params.maxDisparity = static_cast<int>(imageL.cols * .1);
   t = (double)cv::getTickCount();
   
   matchSparse(censusL, censusR, cfg, kpsL, kpsR, matches);
-  //t = ((double)getTickCount() - t)/getTickFrequency();
-  //std::cout<<"Matching Time "<<t/1.0<<std::endl;
+  t = ((double)getTickCount() - t)/getTickFrequency();
+  std::cout<<"Matching Time "<<t/1.0<<std::endl;
   
-  //namedWindow("Matches", CV_WINDOW_KEEPRATIO);
+  namedWindow("Matches", CV_WINDOW_KEEPRATIO);
 
-  //Mat matchImg;
-  //imshow("Matches", matchImg);
+  std::vector<cv::DMatch> dmatches;
+  std::vector<KeyPoint> cvKpsL, cvKpsR;
+
+  for(int i = 0; i < matches.size(); ++i)
+  {
+    DMatch _match;
+    _match.queryIdx = matches[i].feature1Idx;
+    _match.trainIdx = matches[i].feature2Idx;
+    dmatches.push_back(_match);
+  }
+
+  for(int i = 0; i < kpsL.allFeatures.size(); ++i)
+  {
+    KeyPoint kp;
+    kp.pt.x = kpsL.allFeatures[i].x;
+    kp.pt.y = kpsL.allFeatures[i].y;
+    cvKpsL.push_back(kp);
+  }
+
+  for(int i = 0; i < kpsR.allFeatures.size(); ++i)
+  {
+    KeyPoint kp;
+    kp.pt.x = kpsR.allFeatures[i].x;
+    kp.pt.y = kpsR.allFeatures[i].y;
+    cvKpsR.push_back(kp);
+  }
+
+  // Draw matches
+  Mat imgMatch;
+  std::vector<char> mask;
+  drawMatches(matL, cvKpsL, matR, cvKpsR, dmatches, imgMatch, cv::Scalar::all(-1), cv::Scalar::all(-1), mask, 2);
+
+
+  imshow("Matches", imgMatch);
   waitKey(0);
 
   return 0;
