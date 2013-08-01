@@ -24,7 +24,7 @@ int main(int argc, char* argv)
   cfg.imgCols = imageL.cols;
   cfg.imgRows = imageR.rows;
   cfg.type = eSamplingPattern::SPARSE_16;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, imageL.stride);
+  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.patternSize, imageL.stride);
 
   //Do Census Transform
   double t = (double)cv::getTickCount();
@@ -42,19 +42,25 @@ int main(int argc, char* argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
+  
   cfg.params.mode = STEREO;
   cfg.params.corrType = DENSE_11;
+  cfg.params.windowSize = 11;
   cfg.params.epipolarRange = 1;
-  cfg.params.filterDist = 20;
+  cfg.params.filterDist = 40;
   std::vector<Match> matches;
   cfg.params.maxDisparity = static_cast<int>(imageL.cols * .1);
+  t = (double)cv::getTickCount();
+  
   matchSparse(censusL, censusR, cfg, kpsL, kpsR, matches);
+  //t = ((double)getTickCount() - t)/getTickFrequency();
+  //std::cout<<"Matching Time "<<t/1.0<<std::endl;
+  
+  //namedWindow("Matches", CV_WINDOW_KEEPRATIO);
 
-  namedWindow("Matches", CV_WINDOW_KEEPRATIO);
-
-  Mat matchImg;
-  imshow("Matches", matchImg);
-  waitKey();
+  //Mat matchImg;
+  //imshow("Matches", matchImg);
+  waitKey(0);
 
   return 0;
 }

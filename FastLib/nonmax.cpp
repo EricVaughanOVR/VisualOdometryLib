@@ -6,7 +6,6 @@ using namespace correspondence;
 
 void nonmax_suppression(FeatureList& corners)
 {
-  int num_nonmax;
 	int last_row;
 	int* row_start;
 	int i, j;

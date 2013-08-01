@@ -19,7 +19,7 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
     offsetsLUT[i] /= 16;
   }*/
 
-  int edgeSize = static_cast<int>(cfg.windowSize * .5);
+  int edgeSize = static_cast<int>(cfg.patternSize * .5);
   int pxSize = cfg.pattern.size() / 8;
 
   __m128i bitconst = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
@@ -61,7 +61,7 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
 
 void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
-  int edgeSize = static_cast<int>(cfg.windowSize * .5);
+  int edgeSize = static_cast<int>(cfg.patternSize * .5);
   int pxSize = cfg.pattern.size() / 8;
 
   byte* resultPtr;

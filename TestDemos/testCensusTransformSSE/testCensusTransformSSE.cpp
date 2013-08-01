@@ -21,7 +21,7 @@ int main(int argc, char* argv)
   CensusCfg cfg;
 
   cfg.type = eSamplingPattern::SPARSE_16;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.windowSize, image.stride);
+  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.patternSize, image.stride);
 
   Image scalarResult(img.rows, img.cols, 2, offset);//pxStep = 16 descriptor length is 16 bits
  

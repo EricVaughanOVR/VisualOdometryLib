@@ -2957,7 +2957,7 @@ static void make_offsets(int pixel[], int row_stride)
 
 void fast9_score(const byte* i, int stride, FeatureList& corners, int b)
 {	
-	int n;
+	size_t n;
 
 	int pixel[16];
 	make_offsets(pixel, stride);

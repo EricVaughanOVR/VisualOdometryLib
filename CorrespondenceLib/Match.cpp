@@ -17,28 +17,40 @@ void matchSparse(const Image& censusIm1, const Image& censusIm2, const CensusCfg
   //4. Keep track of the right-hand Feature with the smallest SHD
   //5. At the end, if the best feature is within epsilon (normalize for descriptor length) then add it to rMatches
 
+  rMatches.clear();
+  rMatches.reserve(kps1.nonmaxFeatures.size());
+
   for(size_t i = 0; i < kps1.nonmaxFeatures.size(); ++i)//For each left-hand Feature
   {
     std::vector<KpRow> potMatches;
     getPotentialMatches(kps1.nonmaxFeatures[i], kps2, cfg, potMatches);
-
+    
     //Call matchFeature, to get the best match from the pool of potential matches
-
-    //If the match is high-enough quality, add it to rMatches
+    if(!potMatches.empty())
+    {
+      Match match = matchFeature(censusIm1, kps1.nonmaxFeatures[i], censusIm2, potMatches, cfg);
+      //If the match is high-enough quality, add it to rMatches
+      if(match.dist < cfg.params.filterDist)
+        rMatches.push_back(match);
+    }
   }
 }
 
 void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, std::vector<KpRow>& rPotMatches)
 {
-  //What are the beginning and ending row numbers?
-  //What are the beginning and ending columns?
+  rPotMatches.clear();
+  int edgeSize = static_cast<int>(cfg.params.windowSize * .5);
+  //If kp1 is too close to edge of img
+  if(kp1.y < edgeSize || kp1.y > cfg.imgRows - edgeSize ||
+    kp1.x < edgeSize || kp1.x > cfg.imgCols - edgeSize)
+    return;
+
   int epipolar = static_cast<int>(cfg.params.epipolarRange * .5);
   int firstRow = kp1.y - epipolar;
   int lastRow = kp1.y + epipolar;
   int firstCol = kp1.x - cfg.params.maxDisparity;
   int lastCol = kp1.x;
 
-  int edgeSize = static_cast<int>(cfg.windowSize * .5);
   if(firstRow < edgeSize - 1)
     firstRow = edgeSize - 1;
   if(lastRow > cfg.imgRows + edgeSize)
@@ -48,8 +60,6 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
   if(lastCol > cfg.imgCols + edgeSize)
     lastCol = cfg.imgCols + edgeSize;
 
-
-  rPotMatches.clear();
   int numRows = lastRow - firstRow + 1;
   rPotMatches.reserve(numRows);
 
@@ -61,9 +71,11 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
       ++iter;
     if(iter->x < lastCol)
       row.begin = iter;
+    else//No valid potential matches on this row
+      continue;
     while(iter->x < lastCol)
       ++iter;
-    row.end = --iter;
+    row.end = iter;
     rPotMatches.push_back(row);
   }
 }
@@ -105,33 +117,109 @@ uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)
   return result;
 }
 
-int calcHammingDistSSE(__m128i* _1, __m128i* _2, __m128i* _mask_lo, __m128i* _mask_popcnt)
+uint32_t calcHammingDistSSE(__m128i _1, __m128i _2)
 {
+  const __m128i mask_lo = {0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 
+                           0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
+  const __m128i mask_popcnt = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
   //Use this one if PSHUFB
   //Use PSHUFB to calculate the popcount, with a 4-bit LUT
-  __m128i v = _mm_xor_si128(*_1, *_2);
-  __m128i lo = _mm_and_si128(v, *_mask_lo);
-  __m128i hi = _mm_and_si128(_mm_srli_epi16(v, 4), *_mask_lo);
-  lo = _mm_shuffle_epi8(*_mask_popcnt, lo);
-  hi = _mm_shuffle_epi8(*_mask_popcnt, hi);
-  //_mm_add_
-  _mm_add_epi8(lo, hi);
+  __m128i v = _mm_xor_si128(_1, _2);
+  __m128i lo = _mm_and_si128(v, mask_lo);
+  __m128i hi = _mm_and_si128(_mm_srli_epi16(v, 4), mask_lo);
+  
+  lo = _mm_shuffle_epi8(mask_popcnt, lo);
+  hi = _mm_shuffle_epi8(mask_popcnt, hi);
+  v = _mm_add_epi8(lo, hi);
 
-  return 0;
+ const __m128i zeroes = _mm_set1_epi8(0);
+ const __m128i ones = _mm_set1_epi16(1);
+
+ __m128i total = _mm_set1_epi32(0);
+ 
+  //Horizontal Add
+  lo = _mm_unpacklo_epi8(v, zeroes);
+  hi = _mm_unpackhi_epi8(v, zeroes);
+
+  total = _mm_add_epi32(total, _mm_madd_epi16(lo, ones));//sums adjacent u16 values and unpacks to u32
+  /*total = _mm_add_epi32(total, _mm_madd_epi16(hi, ones));
+  
+  //Shift the remaining entries to the least-significant entry and sum
+  total = _mm_add_epi32(total, _mm_srli_si128(total, 8));
+  total = _mm_add_epi32(total, _mm_srli_si128(total, 4));
+  */
+  uint32_t popcnt = _mm_cvtsi128_si32(total);//Extract the least-significant int
+  
+  return popcnt;
 }
 
-uint32_t calcSHD(const Image& region1, const Image& region2,
-                 const Feature& kp1, const Feature& kp2)
+uint32_t calcSHD(const Image& census1, const Image& census2,
+                 const Feature& kp1, const Feature& kp2, const int windowSize)
 {
   //1. For each pixel in the correlationWindow of each image, calculate the Hamming Distance and add it to the total
   //2. When finished, return the total
-  return 0;
+  int windowEdges = static_cast<int>(windowSize * .5);
+
+  int totalDist = 0;
+
+  for(int i = -windowEdges; i < windowEdges; ++i)
+  {
+    //Load a row into a register and shift it so that the data matches the window size
+    __m128i _1 = _mm_load_si128((__m128i*)census1.at(kp1.y + i, kp1.x));
+    __m128i _2 = _mm_load_si128((__m128i*)census2.at(kp2.y + i, kp2.x));
+    
+    
+    switch(windowSize)
+    {
+    case 13:
+      _1 = _mm_srli_si128(_1, 3);
+      _2 = _mm_srli_si128(_2, 3);
+      break;
+    case 11:
+      _1 = _mm_srli_si128(_1, 5);
+      _2 = _mm_srli_si128(_2, 5);
+      break;
+    case 9:
+      _1 = _mm_srli_si128(_1, 7);
+      _2 = _mm_srli_si128(_2, 7);
+      break;
+    case 7:
+      _1 = _mm_srli_si128(_1, 9);
+      _2 = _mm_srli_si128(_2, 9);
+      break;
+    case 5:
+      _1 = _mm_srli_si128(_1, 11);
+      _2 = _mm_srli_si128(_2, 11);
+    }
+    
+    totalDist += calcHammingDistSSE(_1, _2);
+  }
+  
+  return totalDist;
 }
 
-correspondence::Match matchFeature(const Image& im1, const Feature& kp1, const std::vector<KpRow>& kps2)
+correspondence::Match matchFeature(const Image& census1, const Feature& kp1, const Image& census2, 
+                                   const std::vector<KpRow>& potMatches, const CensusCfg& cfg)
 {
   //1. For each possible matching Feature from the right-hand window, compute the SHD
   //2. Compare the latest SHD to the minimum, if the new one is less, update it and the Feature that it is associated with
-  Match match;
-  return match;
+  Match bestMatch;
+  bestMatch.dist = 3000;//Higher than any possible distance, so it will be given a valid value immediately
+  bestMatch.feature1Idx = kp1.idx;
+  
+  for(size_t i = 0; i < potMatches.size(); ++i)
+  {
+    for(std::vector<Feature>::iterator iter = potMatches[i].begin; iter != potMatches[i].end; ++iter)
+    {
+      //TODO How to use FAST score to reject bad matches out-of-hand?  Re-read the paper
+      uint32_t dist = calcSHD(census1, census2, kp1, *iter, cfg.params.windowSize);
+      if(bestMatch.dist > dist)
+      {
+        bestMatch.dist = dist;
+        bestMatch.feature2Idx = iter->idx;
+      }
+    }
+  }
+  
+  return bestMatch;
 }

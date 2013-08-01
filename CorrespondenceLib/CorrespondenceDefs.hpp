@@ -75,7 +75,7 @@ namespace correspondence
 
   struct Match
   {
-    Feature feature1, feature2;
+    int feature1Idx, feature2Idx;
     int dist;
   };
 
@@ -116,8 +116,8 @@ namespace correspondence
     eMatchMode mode;
     //Sampling pattern of the correlation window
     eCorrelationWindow corrType;
-    //The lookup table of the correlation window
-    std::vector<int> corrPattern;
+    //Dimension of the square correlation window
+    int windowSize;
     //What is the maximum normalized Hamming Distance to accept?
     int filterDist;
     //Disparity constraint in pixels
@@ -131,10 +131,12 @@ namespace correspondence
     //Use what sampling pattern
     eSamplingPattern type;
     //Dimension of the square sampling pattern.  e.g. the SPARSE_16 pattern has an equivalent window of a 9x9
-    int windowSize;
+    int patternSize;
+    //img dims
     int imgRows, imgCols;
     //The LUT of the sampling pattern
     std::vector<int> pattern;
+
     MatchingParams params;
   };
 
