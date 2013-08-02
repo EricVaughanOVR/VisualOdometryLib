@@ -39,7 +39,7 @@ int main(int argc, char* argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, DENSE_11, 10, static_cast<int>(imageL.cols * .1), 1);
+  MatchingParams params(STEREO, DENSE_11, 30, static_cast<int>(imageL.cols * .1), 1);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;
@@ -49,6 +49,8 @@ int main(int argc, char* argv)
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"Matching Time "<<t/1.0<<std::endl;
   
+  std::cout<<"Number of matches: "<<matches.size()<<std::endl;
+
   namedWindow("Matches", CV_WINDOW_KEEPRATIO);
 
   std::vector<cv::DMatch> dmatches;
