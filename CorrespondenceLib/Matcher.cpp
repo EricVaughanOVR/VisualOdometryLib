@@ -1,15 +1,31 @@
-#include "Match.hpp"
+#include "Matcher.hpp"
 
 using namespace correspondence;
 
-void matchDense(const Image& censusIm1, const Image& censusIm2,
-                const CensusCfg& cfg, std::vector<correspondence::Match>& rMatches)
+Matcher::Matcher()
+  : hammingTfm(0, 0, 0, pt())
+{
+};
+
+Matcher::Matcher(const CensusCfg& _cfg, const MatchingParams& _params, int _rows, int _cols)
+  : cfg(_cfg),
+    params(_params),
+    hammingTfm(_rows, _cols, 1, pt())
+{
+}
+
+Matcher::~Matcher()
+{
+}
+
+void Matcher::matchDense(const Image& censusIm1, const Image& censusIm2,
+                         std::vector<correspondence::Match>& rMatches)
 {
   //Implement the moving window technique for computing dense disparity maps, as described in 'Fast Census Transform-based Stereo Algorithm using SSE2'
 }
 
-void matchSparse(const Image& censusIm1, const Image& censusIm2, const CensusCfg& cfg, 
-                 const FeatureList& kps1, FeatureList& kps2, std::vector<Match>& rMatches)
+void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const FeatureList& kps1, 
+                 FeatureList& kps2, std::vector<Match>& rMatches)
 {
   //1. Loop through each feature from the first image
   //2. For each feature, usePrepRegion to get a list of possible matches, (Features) from the second image
@@ -23,32 +39,33 @@ void matchSparse(const Image& censusIm1, const Image& censusIm2, const CensusCfg
   for(size_t i = 0; i < kps1.nonmaxFeatures.size(); ++i)//For each left-hand Feature
   {
     std::vector<KpRow> potMatches;
-    getPotentialMatches(kps1.nonmaxFeatures[i], kps2, cfg, potMatches);
+    getPotentialMatches(kps1.nonmaxFeatures[i], kps2, potMatches);
     
     //Call matchFeature, to get the best match from the pool of potential matches
     if(!potMatches.empty())
     {
-      Match match = matchFeature(censusIm1, kps1.nonmaxFeatures[i], censusIm2, potMatches, cfg);
+      Match match = matchFeature(censusIm1, kps1.nonmaxFeatures[i], censusIm2, potMatches);
       //If the match is high-enough quality, add it to rMatches
-      if(match.dist < cfg.params.filterDist)
+      if(match.dist < params.filterDist)
         rMatches.push_back(match);
     }
   }
 }
 
-void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, std::vector<KpRow>& rPotMatches)
+void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, const MatchingParams& params,
+                        std::vector<KpRow>& rPotMatches)
 {
   rPotMatches.clear();
-  int edgeSize = static_cast<int>(cfg.params.windowSize * .5);
+  int edgeSize = static_cast<int>(cfg.patternSize * .5);
   //If kp1 is too close to edge of img
   if(kp1.y < edgeSize || kp1.y > cfg.imgRows - edgeSize ||
     kp1.x < edgeSize || kp1.x > cfg.imgCols - edgeSize)
     return;
 
-  int epipolar = static_cast<int>(cfg.params.epipolarRange * .5);
+  int epipolar = static_cast<int>(params.epipolarRange * .5);
   int firstRow = kp1.y - epipolar;
   int lastRow = kp1.y + epipolar;
-  int firstCol = kp1.x - cfg.params.maxDisparity;
+  int firstCol = kp1.x - params.maxDisparity;
   int lastCol = kp1.x;
 
   if(firstRow < edgeSize - 1)
@@ -80,25 +97,24 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
   }
 }
 
-void getPotentialFlow(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, 
+void getPotentialFlow(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, const MatchingParams& params,
                       std::vector<KpRow>& rPotMatches)
 {
 
 }
 
-void getPotentialMatches(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, 
-                         std::vector<KpRow>& rPotMatches)
+void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::vector<KpRow>& rPotMatches)
 {
   //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
   //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
   //3. If Flow, choose a region surrounding the left-hand Feature and capture potential matches within it.  Then, capture all of the pixels required for an SHD of each potential match
-  if(cfg.params.mode == STEREO)
-    getPotentialStereo(kp1, kps2, cfg, rPotMatches);
+  if(params.mode == STEREO)
+    getPotentialStereo(kp1, kps2, cfg, params, rPotMatches);
   else
-    getPotentialFlow(kp1, kps2, cfg, rPotMatches);
+    getPotentialFlow(kp1, kps2, cfg, params, rPotMatches);
 }
 
-uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)
+uint32_t Matcher::calcHammingDist(const uint16_t _1, const uint16_t _2)
 {
   //XOR the desc
   uint32_t newBitStr = _1 ^ _2;
@@ -117,7 +133,7 @@ uint32_t calcHammingDist(const uint16_t _1, const uint16_t _2)
   return result;
 }
 
-uint32_t calcHammingDistSSE(__m128i _1, __m128i _2)
+uint32_t Matcher::calcHammingDistSSE(__m128i _1, __m128i _2)
 {
   const __m128i mask_lo = {0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 
                            0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
@@ -153,23 +169,22 @@ uint32_t calcHammingDistSSE(__m128i _1, __m128i _2)
   return popcnt;
 }
 
-uint32_t calcSHD(const Image& census1, const Image& census2,
-                 const Feature& kp1, const Feature& kp2, const int windowSize)
+uint32_t Matcher::calcSHD(const Image& census1, const Image& census2,
+                 const Feature& kp1, const Feature& kp2)
 {
   //1. For each pixel in the correlationWindow of each image, calculate the Hamming Distance and add it to the total
   //2. When finished, return the total
-  int windowEdges = static_cast<int>(windowSize * .5);
 
   int totalDist = 0;
 
-  for(int i = -windowEdges; i < windowEdges; ++i)
+  for(int i = -params.edgeSize; i < params.edgeSize; ++i)
   {
     //Load a row into a register and shift it so that the data matches the window size
     __m128i _1 = _mm_loadu_si128((__m128i*)census1.at(kp1.y + i, kp1.x));
     __m128i _2 = _mm_loadu_si128((__m128i*)census2.at(kp2.y + i, kp2.x));
     
     
-    switch(windowSize)
+    switch(params.windowSize)
     {
     case 13:
       _1 = _mm_srli_si128(_1, 3);
@@ -198,8 +213,8 @@ uint32_t calcSHD(const Image& census1, const Image& census2,
   return totalDist;
 }
 
-correspondence::Match matchFeature(const Image& census1, const Feature& kp1, const Image& census2, 
-                                   const std::vector<KpRow>& potMatches, const CensusCfg& cfg)
+correspondence::Match Matcher::matchFeature(const Image& census1, const Feature& kp1, const Image& census2, 
+                                   const std::vector<KpRow>& potMatches)
 {
   //1. For each possible matching Feature from the right-hand window, compute the SHD
   //2. Compare the latest SHD to the minimum, if the new one is less, update it and the Feature that it is associated with
@@ -212,7 +227,7 @@ correspondence::Match matchFeature(const Image& census1, const Feature& kp1, con
     for(std::vector<Feature>::iterator iter = potMatches[i].begin; iter != potMatches[i].end; ++iter)
     {
       //TODO How to use FAST score to reject bad matches out-of-hand?  Re-read the paper
-      uint32_t dist = calcSHD(census1, census2, kp1, *iter, cfg.params.windowSize);
+      int dist = static_cast<int>(calcSHD(census1, census2, kp1, *iter));
       if(bestMatch.dist > dist)
       {
         bestMatch.dist = dist;

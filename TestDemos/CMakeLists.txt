@@ -1,6 +1,4 @@
 add_subdirectory(testCensusTransformSSE)
-add_subdirectory(testStoreSSE16)
 add_subdirectory(testFastFeatures)
 add_subdirectory(testSparseMatch)
 add_subdirectory(testDenseMatch)
-add_subdirectory(testHammingDist)

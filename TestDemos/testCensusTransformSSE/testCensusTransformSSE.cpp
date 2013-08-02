@@ -18,10 +18,7 @@ int main(int argc, char* argv)
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"memcpy align image "<<t/1.0<<std::endl;
 
-  CensusCfg cfg;
-
-  cfg.type = eSamplingPattern::SPARSE_16;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.patternSize, image.stride);
+  CensusCfg cfg(SPARSE_16, image.rows, image.cols, image.stride);
 
   Image scalarResult(img.rows, img.cols, 2, offset);//pxStep = 16 descriptor length is 16 bits
  

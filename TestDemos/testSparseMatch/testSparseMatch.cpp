@@ -1,7 +1,7 @@
 #include "CorrespondenceDefs.hpp"
 #include "Census.hpp"
 #include "fast.hpp"
-#include "Match.hpp"
+#include "Matcher.hpp"
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
@@ -21,11 +21,7 @@ int main(int argc, char* argv)
   Image imageL(matL.rows, matL.cols, 1, offset, (byte*)matL.data);
   Image imageR(matR.rows, matR.cols, 1, offset, (byte*)matR.data);
 
-  CensusCfg cfg;
-  cfg.imgCols = imageL.cols;
-  cfg.imgRows = imageR.rows;
-  cfg.type = eSamplingPattern::SPARSE_16;
-  prepOffsetsLUT(cfg.type, cfg.pattern, cfg.patternSize, imageL.stride);
+  CensusCfg cfg(SPARSE_16, imageL.rows, imageL.cols, imageL.stride);
 
   //Do Census Transform
   double t = (double)cv::getTickCount();
@@ -43,17 +39,13 @@ int main(int argc, char* argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  
-  cfg.params.mode = STEREO;
-  cfg.params.corrType = DENSE_5;
-  cfg.params.windowSize = 5;
-  cfg.params.epipolarRange = 1;
-  cfg.params.filterDist = 10;
+  MatchingParams params(STEREO, DENSE_11, 10, static_cast<int>(imageL.cols * .1), 1);
+  Matcher census(cfg, params, imageL.rows, imageL.cols);
+
   std::vector<Match> matches;
-  cfg.params.maxDisparity = static_cast<int>(imageL.cols * .1);
   t = (double)cv::getTickCount();
   
-  matchSparse(censusL, censusR, cfg, kpsL, kpsR, matches);
+  census.matchSparse(censusL, censusR, kpsL, kpsR, matches);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"Matching Time "<<t/1.0<<std::endl;
   
@@ -62,7 +54,7 @@ int main(int argc, char* argv)
   std::vector<cv::DMatch> dmatches;
   std::vector<KeyPoint> cvKpsL, cvKpsR;
 
-  for(int i = 0; i < matches.size(); ++i)
+  for(size_t i = 0; i < matches.size(); ++i)
   {
     DMatch _match;
     _match.queryIdx = matches[i].feature1Idx;
@@ -70,19 +62,19 @@ int main(int argc, char* argv)
     dmatches.push_back(_match);
   }
 
-  for(int i = 0; i < kpsL.allFeatures.size(); ++i)
+  for(size_t i = 0; i < kpsL.allFeatures.size(); ++i)
   {
     KeyPoint kp;
-    kp.pt.x = kpsL.allFeatures[i].x;
-    kp.pt.y = kpsL.allFeatures[i].y;
+    kp.pt.x = static_cast<float>(kpsL.allFeatures[i].x);
+    kp.pt.y = static_cast<float>(kpsL.allFeatures[i].y);
     cvKpsL.push_back(kp);
   }
 
-  for(int i = 0; i < kpsR.allFeatures.size(); ++i)
+  for(size_t i = 0; i < kpsR.allFeatures.size(); ++i)
   {
     KeyPoint kp;
-    kp.pt.x = kpsR.allFeatures[i].x;
-    kp.pt.y = kpsR.allFeatures[i].y;
+    kp.pt.x = static_cast<float>(kpsR.allFeatures[i].x);
+    kp.pt.y = static_cast<float>(kpsR.allFeatures[i].y);
     cvKpsR.push_back(kp);
   }
 

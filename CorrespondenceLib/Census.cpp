@@ -4,8 +4,43 @@
 
 using namespace correspondence;
 
+namespace
+{
+  void censusTransformSinglePx(const correspondence::byte* objectPx, const std::vector<int>& offsetsLUT,
+                                      correspondence::byte** pResultPx)
+  {
+    int bitCount = 0;
+    for(int k = 0; k < static_cast<int>(offsetsLUT.size()); ++k)
+    {
+      //Do comparison here
+      **pResultPx += (*(objectPx + offsetsLUT[k]) >= *objectPx) << bitCount;
+      if(bitCount < 7)
+      {
+        ++bitCount;
+      }
+      else//When we have converted a byte, increment resultPtr
+      {
+        bitCount = 0;
+        ++*pResultPx;
+      }
+    }
+  }
+
+  //After calculating the census descriptor for the current group of 16 pixels,
+  //move the results into the census-image, by interleaving the __m128 vectors
+  //TRICKY: vect1 and vect2 MUST be 16-byte aligned or we will crash!
+  void storeSSE16(__m128i* src, __m128i* dst)
+  {
+    __m128i tmp = _mm_unpacklo_epi8(*src, *(src + 1));
+    *(dst + 1) = _mm_unpackhi_epi8(*src, *(src + 1));
+    _mm_store_si128(dst, tmp);
+  }
+
+};
+
 void censusTransform(const Image& im, Image& output, eSamplingPattern type, byte** pResult)
 {
+  //TODO determine if sse is available, then choose method of transform
 }
 
 void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
@@ -14,10 +49,6 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
   std::vector<int> offsetsLUT;
   offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
   //Convert offset terms from bytes to __m128i
-  /*for(int i = 0; i < offsetsLUT.size(); ++i)
-  {
-    offsetsLUT[i] /= 16;
-  }*/
 
   int edgeSize = static_cast<int>(cfg.patternSize * .5);
   int pxSize = cfg.pattern.size() / 8;
@@ -77,11 +108,4 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
       censusTransformSinglePx(im.at(i, j), cfg.pattern, &resultPtr);
     }
   }
-}
-
-void storeSSE16(__m128i* src, __m128i* dst)
-{
-  __m128i tmp = _mm_unpacklo_epi8(*src, *(src + 1));
-  *(dst + 1) = _mm_unpackhi_epi8(*src, *(src + 1));
-  _mm_store_si128(dst, tmp);
 }

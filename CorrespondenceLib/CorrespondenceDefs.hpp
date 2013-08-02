@@ -12,60 +12,35 @@ namespace correspondence
   struct pt
   {
     int x, y;
+    pt()
+      : x(0),
+        y(0)
+    {
+    }
   };
 
-  struct Image
+  class Image
   {
-    int rows, cols, pxStep, stride;
-    byte* data;
-    pt offset;
-
-    Image(const int _rows, const int _cols, const int _pxStep, const pt _offset)
-      : rows(_rows),
-        cols(_cols),
-        pxStep(_pxStep),
-        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
-        offset(_offset)
-    {
-      data = (byte*)_mm_malloc(stride * sizeof(byte) * rows * pxStep, 16);
-      zeroMem();
-    };
+  public:
+    Image(const int _rows, const int _cols, const int _pxStep, const pt _offset);
 
     //Copies the supplied data into this object's aligned memory
     Image(const int _rows, const int _cols, const int _pxStep, const pt _offset, 
-      const byte* _data)
-      : rows(_rows),
-        cols(_cols),
-        pxStep(_pxStep),
-        stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
-        offset(_offset)
-    {
-      data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
-      byte* dataPtr = data;
-      int offset = 0;
-      for(int i = 0; i < rows; ++i)
-      {
-        memcpy(dataPtr, _data + offset, _cols);
-        offset += _cols * sizeof(byte);
-        dataPtr += stride;
-      }
-    };
+      const byte* _data);
 
-    ~Image()
-    {
-      _mm_free(data);
-    }
+    ~Image();
 
-    inline void zeroMem()
-    {
-      memset(data, 0, stride * rows * sizeof(byte));     
-    };
+    inline void zeroMem();
 
     inline byte* at(const int _row, const int _col) const
     {
       //Note: only handles a positive value for stride
       return data + _row * stride + _col * pxStep;
     };
+
+    int rows, cols, pxStep, stride;
+    byte* data;
+    pt offset;
   };
 
   struct Feature
@@ -112,12 +87,21 @@ namespace correspondence
 
   struct MatchingParams
   {
+    MatchingParams();
+
+    MatchingParams(eMatchMode _mode, eCorrelationWindow _corrType, int _filterDist, 
+                   int _maxDisparity, int _epipolarRange);
+
+    void init();
+
     //Flow or Stereo
     eMatchMode mode;
     //Sampling pattern of the correlation window
     eCorrelationWindow corrType;
     //Dimension of the square correlation window
     int windowSize;
+    //Size of implicit img border where SHD cannot be found
+    int edgeSize;
     //What is the maximum normalized Hamming Distance to accept?
     int filterDist;
     //Disparity constraint in pixels
@@ -126,18 +110,25 @@ namespace correspondence
     int epipolarRange;
   };
 
-  struct CensusCfg
+  class CensusCfg
   {
+  public:
+    CensusCfg();
+
+    CensusCfg(eSamplingPattern _type, int _rows, int _cols, int _stride);
+
+    void prepOffsetsLUT();
+
     //Use what sampling pattern
     eSamplingPattern type;
     //Dimension of the square sampling pattern.  e.g. the SPARSE_16 pattern has an equivalent window of a 9x9
     int patternSize;
+    //Size of implicit img border where descriptors cannot be found
+    int edgeSize;
     //img dims
-    int imgRows, imgCols;
+    int imgRows, imgCols, imgStride;
     //The LUT of the sampling pattern
     std::vector<int> pattern;
-
-    MatchingParams params;
   };
 
   struct KpRow
