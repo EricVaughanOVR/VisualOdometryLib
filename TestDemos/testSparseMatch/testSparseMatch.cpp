@@ -39,7 +39,7 @@ int main(int argc, char* argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, DENSECW_11, 20, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(STEREO, SPARSECW_16, 20, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;
@@ -50,8 +50,6 @@ int main(int argc, char* argv)
   std::cout<<"Matching Time "<<t/1.0<<std::endl;
   
   std::cout<<"Number of matches: "<<matches.size()<<std::endl;
-
-  namedWindow("Matches", CV_WINDOW_KEEPRATIO);
 
   std::vector<cv::DMatch> dmatches;
   std::vector<KeyPoint> cvKpsL, cvKpsR;
@@ -80,14 +78,16 @@ int main(int argc, char* argv)
     cvKpsR.push_back(kp);
   }
 
-  // Draw matches
-  Mat imgMatch;
-  std::vector<char> mask;
-  drawMatches(matL, cvKpsL, matR, cvKpsR, dmatches, imgMatch, cv::Scalar::all(-1), cv::Scalar::all(-1), mask, 2);
-
-
-  imshow("Matches", imgMatch);
-  waitKey(0);
+  if(!matches.empty())
+  {
+    namedWindow("Matches", CV_WINDOW_KEEPRATIO);
+    // Draw matches
+    Mat imgMatch;
+    std::vector<char> mask;
+    drawMatches(matL, cvKpsL, matR, cvKpsR, dmatches, imgMatch, cv::Scalar::all(-1), cv::Scalar::all(-1), mask, 2);
+    imshow("Matches", imgMatch);
+    waitKey(0);
+  }
 
   return 0;
 }

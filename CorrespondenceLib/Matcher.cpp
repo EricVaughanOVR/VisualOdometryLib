@@ -82,8 +82,6 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
 
   for(int i = 0; i < numRows; ++i)
   {
-    if(kp1.y < edgeSize)
-      continue;
     KpRow row;
     std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[kp1.y];
     while(iter->x < firstCol)
