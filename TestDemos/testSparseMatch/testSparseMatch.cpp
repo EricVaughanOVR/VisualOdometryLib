@@ -12,21 +12,36 @@ using namespace cv;
 
 int main(int argc, char** argv)
 {
-  //Load images
-  Mat matL = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
-  Mat matR = imread("../../../Resources/ImageData/TeddyRight.png", CV_LOAD_IMAGE_GRAYSCALE);
+  if( argc != 3 ) 
+  {
+    std::cout<<std::endl<<"Usage: "<<argv[0]<<"[path to image1] [path to image2]"<<std::endl;
+    return -1;
+  }
+
+  Mat matL = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+  if( !matL.data ) 
+  {
+    std::cout<< "Error reading image " << argv[1] << std::endl;
+    return -1;
+  }
+  Mat matR = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+  if( !matR.data ) 
+  {
+    std::cout<< "Error reading image " << argv[2] << std::endl;
+    return -1;
+  }
   pt offset;
   offset.x = 0;
   offset.y = 0;
   Image imageL(matL.rows, matL.cols, 1, offset, (byte*)matL.data);
   Image imageR(matR.rows, matR.cols, 1, offset, (byte*)matR.data);
 
-  CensusCfg cfg(SPARSE_8, imageL.rows, imageL.cols, imageL.stride, imageL.pxStep);
+  CensusCfg cfg(SPARSE_16, imageL.rows, imageL.cols, imageL.stride, imageL.pxStep);
 
   //Do Census Transform
   double t = (double)cv::getTickCount();
-  Image censusL(matL.rows, matL.cols, 1/*size of descriptor in bytes*/, offset);
-  Image censusR(matR.rows, matR.cols, 1/*size of descriptor in bytes*/, offset);
+  Image censusL(matL.rows, matL.cols, 2/*size of descriptor in bytes*/, offset);
+  Image censusR(matR.rows, matR.cols, 2/*size of descriptor in bytes*/, offset);
   t = (double)cv::getTickCount();
   censusTransformSSE(imageL, cfg, censusL);
   censusTransformSSE(imageR, cfg, censusR);
@@ -39,7 +54,7 @@ int main(int argc, char** argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, SPARSECW_16, 11, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(STEREO, SPARSECW_16, 50, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;

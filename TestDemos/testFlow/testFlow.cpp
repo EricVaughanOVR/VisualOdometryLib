@@ -12,9 +12,24 @@ using namespace cv;
 
 int main(int argc, char** argv)
 {
-  //Load images
-  Mat matL = imread("../../../Resources/ImageData/flow1.png", CV_LOAD_IMAGE_GRAYSCALE);
-  Mat matR = imread("../../../Resources/ImageData/flow2.png", CV_LOAD_IMAGE_GRAYSCALE);
+  if( argc != 3 ) 
+  {
+    std::cout<<std::endl<<"Usage: "<<argv[0]<<"[path to image1] [path to image2]"<<std::endl;
+    return -1;
+  }
+
+  Mat matL = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+  if( !matL.data ) 
+  {
+    std::cout<< "Error reading image " << argv[1] << std::endl;
+    return -1;
+  }
+  Mat matR = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+  if( !matR.data ) 
+  {
+    std::cout<< "Error reading image " << argv[2] << std::endl;
+    return -1;
+  }
   pt offset;
   offset.x = 0;
   offset.y = 0;
