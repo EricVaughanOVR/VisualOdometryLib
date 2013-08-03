@@ -95,7 +95,7 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
     std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[i];
 
     bool beginSet = false;
-    do
+    while(iter->x <= lastCol && iter->y <= lastRow)
     {
       if(iter->x >= firstCol && iter->x <= lastCol && iter->y <= lastRow)
       {
@@ -111,7 +111,7 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
           rPotMatches.back().end = iter;
       }
       ++iter;
-    }while(iter->x <= lastCol && iter->y <= lastRow);//TRICKY post-script ++ is necessary
+    }
   }
 }
 
