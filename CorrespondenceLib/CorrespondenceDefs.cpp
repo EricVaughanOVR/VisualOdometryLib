@@ -1,120 +1,9 @@
 #include "CorrespondenceDefs.hpp"
 
-namespace correspondence
+namespace 
 {
-  //Begin Image class
-  Image::Image(const int _rows, const int _cols, const int _pxStep, const pt _offset)
-    : rows(_rows),
-      cols(_cols),
-      pxStep(_pxStep),
-      stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
-      offset(_offset)
-  {
-    data = (byte*)_mm_malloc(stride * sizeof(byte) * rows * pxStep, 16);
-    zeroMem();
-  };
-
-  //Copies the supplied data into this object's aligned memory
-  Image::Image(const int _rows, const int _cols, const int _pxStep, const pt _offset, 
-    const byte* _data)
-    : rows(_rows),
-      cols(_cols),
-      pxStep(_pxStep),
-      stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
-      offset(_offset)
-  {
-    data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
-    byte* dataPtr = data;
-    int offset = 0;
-    for(int i = 0; i < rows; ++i)
-    {
-      memcpy(dataPtr, _data + offset, _cols);
-      offset += _cols * sizeof(byte);
-      dataPtr += stride;
-    }
-  };
-
-  Image::~Image()
-  {
-    _mm_free(data);
-  }
-
-  void Image::zeroMem()
-  {
-    memset(data, 0, stride * rows * sizeof(byte));     
-  };
-  //End Image class
-
-  //Begin MatchingParams struct
-  MatchingParams::MatchingParams()
-    : mode(STEREO),
-      corrType(DENSE_11),
-      filterDist(20),//TODO normalize to descriptor size
-      maxDisparity(0),
-      epipolarRange(1)
-  {
-    init();
-  };
-
-  MatchingParams::MatchingParams(eMatchMode _mode, eCorrelationWindow _corrType, int _filterDist, 
-                  int _maxDisparity, int _epipolarRange)
-    : mode(_mode),
-      corrType(_corrType),
-      filterDist(_filterDist),
-      maxDisparity(_maxDisparity),
-      epipolarRange(_epipolarRange)
-  {
-    init();
-  };
-
-  void MatchingParams::init()
-  {
-    switch(mode)
-    {
-    case DENSE_13 :
-      windowSize = 13;
-      edgeSize = 6;
-      break;
-    case DENSE_11 :
-      windowSize = 11;
-      edgeSize = 5;
-      break;
-    case DENSE_9 :
-      windowSize = 9;
-      edgeSize = 4;
-      break;
-    case DENSE_7 : 
-      windowSize = 7;
-      edgeSize = 3;
-      break;
-    case DENSE_5 :
-      windowSize = 15;
-      edgeSize = 2;
-      break;
-    };
-  };
-  //End MatchingParams struct
-
-  //Begin CensusCfg class
-  CensusCfg::CensusCfg()
-    : type(SPARSE_16),
-      imgRows(0),
-      imgCols(0),
-      imgStride(0)
-  {};
-
-  CensusCfg::CensusCfg(eSamplingPattern _type, int _rows, int _cols, int _stride)
-    : type(_type),
-      imgRows(_rows),
-      imgCols(_cols),
-      imgStride(_stride)
-  {
-    prepOffsetsLUT();
-  };
-
   void lut_sparse8(std::vector<int>& offsets, const int stride)
   {
-
     offsets.resize(8);
     offsets[0] = -4 * stride;
     offsets[1] = -3 * stride - 3;
@@ -147,28 +36,155 @@ namespace correspondence
     offsets[15] = 4 * stride + 2;
   }
 
-  void lut_dense(std::vector<int>& offsets, const int stride, const int size)
+  void lut_dense(std::vector<int>& offsets, const int stride, const int rows, const int cols)
   {
-    offsets.resize(size * size - 1);
-    int row = static_cast<int>(-size * .5);
-    int col = row;
+    offsets.resize(rows * cols);
+    int row = static_cast<int>(-rows * .5);
+    int col = static_cast<int>(-cols * .5);
     for(int i = 0; i < static_cast<int>(offsets.size()); ++i)
     {
-      if(i == static_cast<int>(offsets.size() * .5))
-        ++col;
       offsets[i] = row * stride + col;
-      if(col < static_cast<int>(size * .5))
+      if(col < static_cast<int>(cols * .5) - 1)
       {
         ++col;
       }
       else
       {
-        col = static_cast<int>(-.5 * size);
+        col = static_cast<int>(-.5 * cols);
         ++row;
       }
     }
   }
-  void CensusCfg::prepOffsetsLUT()
+
+};
+namespace correspondence
+{
+  //Begin Image class
+  Image::Image(const int _rows, const int _cols, const int _pxStep, const pt _offset)
+    : rows(_rows),
+      cols(_cols),
+      pxStep(_pxStep),
+      stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
+      offset(_offset)
+  {
+    data = (byte*)_mm_malloc(stride * sizeof(byte) * rows * pxStep, 16);
+    zeroMem();
+  }
+
+  //Copies the supplied data into this object's aligned memory
+  Image::Image(const int _rows, const int _cols, const int _pxStep, const pt _offset, 
+    const byte* _data)
+    : rows(_rows),
+      cols(_cols),
+      pxStep(_pxStep),
+      stride(_cols * _pxStep + 16 - ((_cols * _pxStep) % 16)),
+      offset(_offset)
+  {
+    data = (byte*)_mm_malloc(stride * rows * pxStep, 16);
+    byte* dataPtr = data;
+    int offset = 0;
+    for(int i = 0; i < rows; ++i)
+    {
+      memcpy(dataPtr, _data + offset, _cols);
+      offset += _cols * sizeof(byte);
+      dataPtr += stride;
+    }
+  }
+
+  Image::~Image()
+  {
+    _mm_free(data);
+  }
+
+  void Image::zeroMem()
+  {
+    memset(data, 0, stride * rows * sizeof(byte));     
+  }
+  //End Image class
+
+  //Begin MatchingParams struct
+  MatchingParams::MatchingParams()
+    : mode(STEREO),
+      corrType(DENSECW_11),
+      filterDist(20),//TODO normalize to descriptor size
+      maxDisparity(0),
+      epipolarRange(1)
+  {
+  }
+
+  MatchingParams::MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _filterDist, 
+                  const int _maxDisparity, const int _epipolarRange, const int _stride)
+    : mode(_mode),
+      corrType(_corrType),
+      filterDist(_filterDist),
+      maxDisparity(_maxDisparity),
+      epipolarRange(_epipolarRange)
+  {
+    prepCorrLUT(_stride);
+  }
+
+    
+
+  void MatchingParams::prepCorrLUT(const int _stride)
+  {
+    switch(corrType)
+    {
+    case DENSECW_13 :
+      lut_dense(pattern, _stride, 12, 13);
+      windowSize = 13;
+      edgeSize = 6;
+      break;
+    case DENSECW_11 :
+      lut_dense(pattern, _stride, 11, 12);
+      windowSize = 12;
+      edgeSize = 6;
+      break;
+    case DENSECW_9 :
+      lut_dense(pattern, _stride, 8, 9);
+      windowSize = 9;
+      edgeSize = 4;
+      break;
+    case DENSECW_7 : 
+      lut_dense(pattern, _stride, 7, 8);
+      windowSize = 8;
+      edgeSize = 4;
+      break;
+    case DENSECW_5 :
+      lut_dense(pattern, _stride, 4, 5);
+      windowSize = 5;
+      edgeSize = 2;
+      break;
+    case SPARSECW_16 :
+      lut_sparse16(pattern, _stride);
+      windowSize = 9;
+      edgeSize = 4;
+      break;
+    case SPARSECW_8 :
+      lut_sparse8(pattern, _stride);
+      windowSize = 9;
+      edgeSize = 4;
+    };
+  }
+  //End MatchingParams struct
+
+  //Begin CensusCfg class
+  CensusCfg::CensusCfg()
+    : type(SPARSE_16),
+      imgRows(0),
+      imgCols(0),
+      imgStride(0)
+  {}
+
+  CensusCfg::CensusCfg(const eSamplingPattern _type, const int _rows, const int _cols, const int _stride)
+    : type(_type),
+      imgRows(_rows),
+      imgCols(_cols),
+      imgStride(_stride)
+  {
+    prepSamplingLUT();
+  }
+
+  void CensusCfg::prepSamplingLUT()
   {
     switch(type)
     {
@@ -182,10 +198,6 @@ namespace correspondence
       edgeSize = 4;
       lut_sparse16(pattern, imgStride);
       break;
-    case DENSE_3 :
-      patternSize = 3;
-      edgeSize = 1;
-      lut_dense(pattern, imgStride, patternSize);
     };
   } 
   //End CensusCfg class

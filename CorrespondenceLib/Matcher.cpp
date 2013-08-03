@@ -175,11 +175,13 @@ uint32_t Matcher::calcSHD(const Image& census1, const Image& census2,
   //1. For each pixel in the correlationWindow of each image, calculate the Hamming Distance and add it to the total
   //2. When finished, return the total
 
+  int step = 4 / census1.pxStep;//TRICKY pxStep must be < 4, or div by zero
   int totalDist = 0;
 
   for(int i = -params.edgeSize; i < params.edgeSize; ++i)
   {
-    //Load a row into a register and shift it so that the data matches the window size
+
+    /*//Load a row into a register and shift it so that the data matches the window size
     __m128i _1 = _mm_loadu_si128((__m128i*)census1.at(kp1.y + i, kp1.x));
     __m128i _2 = _mm_loadu_si128((__m128i*)census2.at(kp2.y + i, kp2.x));
     
@@ -206,8 +208,19 @@ uint32_t Matcher::calcSHD(const Image& census1, const Image& census2,
       _1 = _mm_srli_si128(_1, 11);
       _2 = _mm_srli_si128(_2, 11);
     }
-    
-    totalDist += calcHammingDistSSE(_1, _2);
+
+    totalDist += calcHammingDistSSE(_1, _2);*/
+
+    for(int j = -params.edgeSize; j < params.edgeSize; j += step)
+    {
+      uint8_t* pxL = census1.at(kp1.y + i, kp1.x + j);
+      uint8_t* pxR = census2.at(kp2.y + i, kp2.x + j);
+
+      uint32_t l = *pxL << 24 | *(pxL + 1) << 16 | *(pxL + 2) << 8 | *(pxL + 3);
+      uint32_t r = *pxR << 24 | *(pxR + 1) << 16 | *(pxR + 2) << 8 | *(pxR + 3);
+
+      totalDist += _mm_popcnt_u32(l^r);
+    }
   }
   
   return totalDist;
@@ -226,7 +239,7 @@ correspondence::Match Matcher::matchFeature(const Image& census1, const Feature&
   {
     for(std::vector<Feature>::iterator iter = potMatches[i].begin; iter != potMatches[i].end; ++iter)
     {
-      //TODO How to use FAST score to reject bad matches out-of-hand?  Re-read the paper
+      //TODO Use FAST score to reject bad matches out-of-hand
       int dist = static_cast<int>(calcSHD(census1, census2, kp1, *iter));
       if(bestMatch.dist > dist)
       {

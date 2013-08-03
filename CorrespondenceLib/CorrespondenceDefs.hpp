@@ -66,17 +66,19 @@ namespace correspondence
   enum eSamplingPattern
   {
     SPARSE_8,//8 or 16 sampling points
-    SPARSE_16,
-    DENSE_3
+    SPARSE_16
   };
 
   enum eCorrelationWindow
   {
-    DENSE_5,
-    DENSE_7,
-    DENSE_9,
-    DENSE_11,
-    DENSE_13
+    //Pattern shapes are tweaked for optimization
+    SPARSECW_8,
+    SPARSECW_16,
+    DENSECW_5,//4 rows * 5 cols
+    DENSECW_7,//7 rows * 8 cols
+    DENSECW_9,//8 rows * 9 cols
+    DENSECW_11,//12 rows * 11 cols
+    DENSECW_13//12 rows * 13 cols
   };
 
   enum eMatchMode
@@ -89,19 +91,21 @@ namespace correspondence
   {
     MatchingParams();
 
-    MatchingParams(eMatchMode _mode, eCorrelationWindow _corrType, int _filterDist, 
-                   int _maxDisparity, int _epipolarRange);
+    MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _filterDist, 
+                   const int _maxDisparity, const int _epipolarRange, const int _stride);
 
-    void init();
+    void prepCorrLUT(const int _stride);
 
     //Flow or Stereo
     eMatchMode mode;
-    //Sampling pattern of the correlation window
+    //Sampling type of the correlation window
     eCorrelationWindow corrType;
     //Dimension of the square correlation window
     int windowSize;
     //Size of implicit img border where SHD cannot be found
     int edgeSize;
+    //Sampling pattern of the correlation window
+    std::vector<int> pattern;
     //What is the maximum normalized Hamming Distance to accept?
     int filterDist;
     //Disparity constraint in pixels
@@ -115,9 +119,9 @@ namespace correspondence
   public:
     CensusCfg();
 
-    CensusCfg(eSamplingPattern _type, int _rows, int _cols, int _stride);
+    CensusCfg(const eSamplingPattern _type, const int _rows, const int _cols, const int _stride);
 
-    void prepOffsetsLUT();
+    void prepSamplingLUT();
 
     //Use what sampling pattern
     eSamplingPattern type;
