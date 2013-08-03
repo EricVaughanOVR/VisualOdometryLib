@@ -2963,7 +2963,7 @@ void fast9_score(const byte* i, int stride, FeatureList& corners, int b)
 	make_offsets(pixel, stride);
 
   for(n=0; n < corners.allFeatures.size(); n++)
-      corners.allFeatures[n].score = fast9_corner_score(i + corners.allFeatures[n].y*stride + corners.allFeatures[n].x, pixel, b);
+      corners.allFeatures[n].score *= fast9_corner_score(i + corners.allFeatures[n].y*stride + corners.allFeatures[n].x, pixel, b);
 }
 
 void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, FeatureList& corners)
@@ -2972,6 +2972,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
 	int rsize=512;
 	int pixel[16];
 	int x, y, n = 0;
+  int positive = 0;
   corners.rowIdxs.clear();
   corners.rowIdxs.resize(ysize, -1);
 
@@ -2993,16 +2994,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
               if(p[pixel[6]] > cb)
                if(p[pixel[7]] > cb)
                 if(p[pixel[8]] > cb)
-                 {}
+                 {positive = 1;}
                 else
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   continue;
                else if(p[pixel[7]] < c_b)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   continue;
                 else if(p[pixel[14]] < c_b)
@@ -3013,7 +3014,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[12]] < c_b)
                       if(p[pixel[13]] < c_b)
                        if(p[pixel[15]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                       else
@@ -3033,7 +3034,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                else
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   continue;
                 else
@@ -3042,7 +3043,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[15]] > cb)
                 if(p[pixel[13]] > cb)
                  if(p[pixel[14]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   continue;
                 else if(p[pixel[13]] < c_b)
@@ -3053,7 +3054,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[11]] < c_b)
                       if(p[pixel[12]] < c_b)
                        if(p[pixel[14]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                       else
@@ -3079,7 +3080,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[12]] < c_b)
                       if(p[pixel[13]] < c_b)
                        if(p[pixel[14]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                       else
@@ -3100,7 +3101,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   continue;
                 else
@@ -3114,7 +3115,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[12]] < c_b)
                       if(p[pixel[14]] < c_b)
                        if(p[pixel[15]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                       else
@@ -3138,7 +3139,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[12]] > cb)
                 if(p[pixel[13]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
@@ -3146,7 +3147,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[9]] > cb)
                       if(p[pixel[10]] > cb)
                        if(p[pixel[11]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                       else
@@ -3169,7 +3170,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[10]] < c_b)
                      if(p[pixel[11]] < c_b)
                       if(p[pixel[13]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -3195,10 +3196,10 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[12]] < c_b)
                      if(p[pixel[13]] < c_b)
                       if(p[pixel[6]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        if(p[pixel[15]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                      else
@@ -3224,7 +3225,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[11]] < c_b)
                      if(p[pixel[12]] < c_b)
                       if(p[pixel[13]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -3246,7 +3247,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
@@ -3254,7 +3255,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[9]] > cb)
                       if(p[pixel[10]] > cb)
                        if(p[pixel[11]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                       else
@@ -3280,10 +3281,10 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[13]] < c_b)
                      if(p[pixel[14]] < c_b)
                       if(p[pixel[6]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        if(p[pixel[15]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                      else
@@ -3308,14 +3309,14 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[12]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
                       if(p[pixel[10]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -3333,7 +3334,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
                       if(p[pixel[10]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -3356,7 +3357,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[9]] < c_b)
                     if(p[pixel[10]] < c_b)
                      if(p[pixel[12]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3382,16 +3383,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[12]] < c_b)
                     if(p[pixel[6]] < c_b)
                      if(p[pixel[5]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       if(p[pixel[14]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                     else
                      if(p[pixel[14]] < c_b)
                       if(p[pixel[15]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -3417,7 +3418,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[10]] < c_b)
                     if(p[pixel[11]] < c_b)
                      if(p[pixel[12]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3440,14 +3441,14 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
                       if(p[pixel[10]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -3465,7 +3466,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
                       if(p[pixel[10]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -3491,16 +3492,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[13]] < c_b)
                     if(p[pixel[6]] < c_b)
                      if(p[pixel[5]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       if(p[pixel[14]] < c_b)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                     else
                      if(p[pixel[14]] < c_b)
                       if(p[pixel[15]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -3526,13 +3527,13 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -3547,7 +3548,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -3565,7 +3566,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -3590,11 +3591,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[6]] < c_b)
                   if(p[pixel[5]] < c_b)
                    if(p[pixel[4]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     if(p[pixel[12]] < c_b)
                      if(p[pixel[13]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3603,7 +3604,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[12]] < c_b)
                     if(p[pixel[13]] < c_b)
                      if(p[pixel[14]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3615,7 +3616,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[13]] < c_b)
                     if(p[pixel[14]] < c_b)
                      if(p[pixel[15]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3641,13 +3642,13 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -3662,7 +3663,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -3680,7 +3681,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
                      if(p[pixel[9]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -3706,16 +3707,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[5]] < c_b)
                     if(p[pixel[4]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      if(p[pixel[13]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                    else
                     if(p[pixel[13]] < c_b)
                      if(p[pixel[14]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3724,7 +3725,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[13]] < c_b)
                     if(p[pixel[14]] < c_b)
                      if(p[pixel[15]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -3751,12 +3752,12 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3768,7 +3769,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3783,7 +3784,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3801,7 +3802,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3826,11 +3827,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[5]] < c_b)
                  if(p[pixel[4]] < c_b)
                   if(p[pixel[3]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    if(p[pixel[11]] < c_b)
                     if(p[pixel[12]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -3839,7 +3840,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[11]] < c_b)
                    if(p[pixel[12]] < c_b)
                     if(p[pixel[13]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -3851,7 +3852,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[12]] < c_b)
                    if(p[pixel[13]] < c_b)
                     if(p[pixel[14]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -3866,7 +3867,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[13]] < c_b)
                    if(p[pixel[14]] < c_b)
                     if(p[pixel[15]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -3893,12 +3894,12 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3910,7 +3911,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3925,7 +3926,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3943,7 +3944,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
                     if(p[pixel[8]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -3969,16 +3970,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[4]] < c_b)
                    if(p[pixel[3]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     if(p[pixel[12]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                   else
                    if(p[pixel[12]] < c_b)
                     if(p[pixel[13]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -3987,7 +3988,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[12]] < c_b)
                    if(p[pixel[13]] < c_b)
                     if(p[pixel[14]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -3999,7 +4000,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[13]] < c_b)
                    if(p[pixel[14]] < c_b)
                     if(p[pixel[15]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -4027,11 +4028,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4040,7 +4041,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4052,7 +4053,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4067,7 +4068,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4085,7 +4086,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4110,11 +4111,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[4]] < c_b)
                 if(p[pixel[3]] < c_b)
                  if(p[pixel[2]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[10]] < c_b)
                    if(p[pixel[11]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4123,7 +4124,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[10]] < c_b)
                   if(p[pixel[11]] < c_b)
                    if(p[pixel[12]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4135,7 +4136,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[11]] < c_b)
                   if(p[pixel[12]] < c_b)
                    if(p[pixel[13]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4150,7 +4151,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[12]] < c_b)
                   if(p[pixel[13]] < c_b)
                    if(p[pixel[14]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4168,7 +4169,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[13]] < c_b)
                   if(p[pixel[14]] < c_b)
                    if(p[pixel[15]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4196,11 +4197,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] > cb)
                 if(p[pixel[14]] > cb)
                  if(p[pixel[15]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4209,7 +4210,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4221,7 +4222,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4236,7 +4237,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4254,7 +4255,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[6]] > cb)
                    if(p[pixel[7]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4280,16 +4281,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[4]] < c_b)
                  if(p[pixel[3]] < c_b)
                   if(p[pixel[2]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    if(p[pixel[11]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                  else
                   if(p[pixel[11]] < c_b)
                    if(p[pixel[12]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4298,7 +4299,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[11]] < c_b)
                   if(p[pixel[12]] < c_b)
                    if(p[pixel[13]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4310,7 +4311,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[12]] < c_b)
                   if(p[pixel[13]] < c_b)
                    if(p[pixel[14]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4325,7 +4326,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[13]] < c_b)
                   if(p[pixel[14]] < c_b)
                    if(p[pixel[15]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4354,11 +4355,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[4]] > cb)
                 if(p[pixel[3]] > cb)
                  if(p[pixel[2]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[10]] > cb)
                    if(p[pixel[11]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4367,7 +4368,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[10]] > cb)
                   if(p[pixel[11]] > cb)
                    if(p[pixel[12]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4379,7 +4380,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[11]] > cb)
                   if(p[pixel[12]] > cb)
                    if(p[pixel[13]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4394,7 +4395,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[12]] > cb)
                   if(p[pixel[13]] > cb)
                    if(p[pixel[14]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4412,7 +4413,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[13]] > cb)
                   if(p[pixel[14]] > cb)
                    if(p[pixel[15]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -4437,11 +4438,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4450,7 +4451,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4462,7 +4463,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4477,7 +4478,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4495,7 +4496,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -4524,11 +4525,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[5]] > cb)
                  if(p[pixel[4]] > cb)
                   if(p[pixel[3]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    if(p[pixel[11]] > cb)
                     if(p[pixel[12]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -4537,7 +4538,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[11]] > cb)
                    if(p[pixel[12]] > cb)
                     if(p[pixel[13]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -4549,7 +4550,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[12]] > cb)
                    if(p[pixel[13]] > cb)
                     if(p[pixel[14]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -4564,7 +4565,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[13]] > cb)
                    if(p[pixel[14]] > cb)
                     if(p[pixel[15]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -4588,12 +4589,12 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -4605,7 +4606,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -4620,7 +4621,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -4638,7 +4639,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -4667,11 +4668,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[6]] > cb)
                   if(p[pixel[5]] > cb)
                    if(p[pixel[4]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     if(p[pixel[12]] > cb)
                      if(p[pixel[13]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -4680,7 +4681,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[12]] > cb)
                     if(p[pixel[13]] > cb)
                      if(p[pixel[14]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -4692,7 +4693,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[13]] > cb)
                     if(p[pixel[14]] > cb)
                      if(p[pixel[15]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -4715,13 +4716,13 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -4736,7 +4737,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -4754,7 +4755,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -4784,16 +4785,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[12]] > cb)
                     if(p[pixel[6]] > cb)
                      if(p[pixel[5]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       if(p[pixel[14]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                     else
                      if(p[pixel[14]] > cb)
                       if(p[pixel[15]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -4819,7 +4820,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[9]] > cb)
                     if(p[pixel[10]] > cb)
                      if(p[pixel[12]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -4838,14 +4839,14 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[12]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
                       if(p[pixel[10]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -4863,7 +4864,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
                       if(p[pixel[10]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -4889,7 +4890,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[10]] > cb)
                     if(p[pixel[11]] > cb)
                      if(p[pixel[12]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -4917,10 +4918,10 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[12]] > cb)
                      if(p[pixel[13]] > cb)
                       if(p[pixel[6]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        if(p[pixel[15]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                      else
@@ -4946,7 +4947,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[10]] > cb)
                      if(p[pixel[11]] > cb)
                       if(p[pixel[13]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -4964,7 +4965,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                else if(p[pixel[12]] < c_b)
                 if(p[pixel[13]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
@@ -4972,7 +4973,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[9]] < c_b)
                       if(p[pixel[10]] < c_b)
                        if(p[pixel[11]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                       else
@@ -4998,7 +4999,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[11]] > cb)
                      if(p[pixel[12]] > cb)
                       if(p[pixel[13]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -5026,7 +5027,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[11]] > cb)
                       if(p[pixel[12]] > cb)
                        if(p[pixel[14]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                       else
@@ -5043,7 +5044,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   continue;
                 else if(p[pixel[13]] < c_b)
                  if(p[pixel[14]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   continue;
                 else
@@ -5057,7 +5058,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[12]] > cb)
                       if(p[pixel[13]] > cb)
                        if(p[pixel[14]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                       else
@@ -5084,7 +5085,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[12]] > cb)
                       if(p[pixel[13]] > cb)
                        if(p[pixel[15]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                       else
@@ -5101,23 +5102,23 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   continue;
                 else if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   continue;
                 else
                  continue;
                else if(p[pixel[7]] < c_b)
                 if(p[pixel[8]] < c_b)
-                 {}
+                 {positive = -1;}
                 else
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   continue;
                else
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   continue;
                 else
@@ -5132,7 +5133,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[12]] > cb)
                       if(p[pixel[14]] > cb)
                        if(p[pixel[15]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                       else
@@ -5152,7 +5153,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                else if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   continue;
                 else
@@ -5169,10 +5170,10 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[13]] > cb)
                      if(p[pixel[14]] > cb)
                       if(p[pixel[6]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        if(p[pixel[15]] > cb)
-                        {}
+                        {positive = 1;}
                        else
                         continue;
                      else
@@ -5193,7 +5194,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
@@ -5201,7 +5202,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                      if(p[pixel[9]] < c_b)
                       if(p[pixel[10]] < c_b)
                        if(p[pixel[11]] < c_b)
-                        {}
+                        {positive = -1;}
                        else
                         continue;
                       else
@@ -5230,16 +5231,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[13]] > cb)
                     if(p[pixel[6]] > cb)
                      if(p[pixel[5]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       if(p[pixel[14]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                     else
                      if(p[pixel[14]] > cb)
                       if(p[pixel[15]] > cb)
-                       {}
+                       {positive = 1;}
                       else
                        continue;
                      else
@@ -5261,14 +5262,14 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
                       if(p[pixel[10]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -5286,7 +5287,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
                       if(p[pixel[10]] < c_b)
-                       {}
+                       {positive = -1;}
                       else
                        continue;
                      else
@@ -5315,16 +5316,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] > cb)
                    if(p[pixel[5]] > cb)
                     if(p[pixel[4]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      if(p[pixel[13]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                    else
                     if(p[pixel[13]] > cb)
                      if(p[pixel[14]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -5333,7 +5334,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[13]] > cb)
                     if(p[pixel[14]] > cb)
                      if(p[pixel[15]] > cb)
-                      {}
+                      {positive = 1;}
                      else
                       continue;
                     else
@@ -5356,13 +5357,13 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -5377,7 +5378,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -5395,7 +5396,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
                      if(p[pixel[9]] < c_b)
-                      {}
+                      {positive = -1;}
                      else
                       continue;
                     else
@@ -5424,16 +5425,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] > cb)
                   if(p[pixel[4]] > cb)
                    if(p[pixel[3]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     if(p[pixel[12]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                   else
                    if(p[pixel[12]] > cb)
                     if(p[pixel[13]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -5442,7 +5443,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[12]] > cb)
                    if(p[pixel[13]] > cb)
                     if(p[pixel[14]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -5454,7 +5455,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[13]] > cb)
                    if(p[pixel[14]] > cb)
                     if(p[pixel[15]] > cb)
-                     {}
+                     {positive = 1;}
                     else
                      continue;
                    else
@@ -5478,12 +5479,12 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -5495,7 +5496,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -5510,7 +5511,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -5528,7 +5529,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
                     if(p[pixel[8]] < c_b)
-                     {}
+                     {positive = -1;}
                     else
                      continue;
                    else
@@ -5557,16 +5558,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[4]] > cb)
                  if(p[pixel[3]] > cb)
                   if(p[pixel[2]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    if(p[pixel[11]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                  else
                   if(p[pixel[11]] > cb)
                    if(p[pixel[12]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -5575,7 +5576,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[11]] > cb)
                   if(p[pixel[12]] > cb)
                    if(p[pixel[13]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -5587,7 +5588,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[12]] > cb)
                   if(p[pixel[13]] > cb)
                    if(p[pixel[14]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -5602,7 +5603,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[13]] > cb)
                   if(p[pixel[14]] > cb)
                    if(p[pixel[15]] > cb)
-                    {}
+                    {positive = 1;}
                    else
                     continue;
                   else
@@ -5627,11 +5628,11 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[13]] < c_b)
                 if(p[pixel[14]] < c_b)
                  if(p[pixel[15]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -5640,7 +5641,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -5652,7 +5653,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -5667,7 +5668,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -5685,7 +5686,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                  if(p[pixel[5]] < c_b)
                   if(p[pixel[6]] < c_b)
                    if(p[pixel[7]] < c_b)
-                    {}
+                    {positive = -1;}
                    else
                     continue;
                   else
@@ -5714,16 +5715,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[3]] > cb)
                 if(p[pixel[2]] > cb)
                  if(p[pixel[1]] > cb)
-                  {}
+                  {positive = 1;}
                  else
                   if(p[pixel[10]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    continue;
                 else
                  if(p[pixel[10]] > cb)
                   if(p[pixel[11]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    continue;
                  else
@@ -5732,7 +5733,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[10]] > cb)
                  if(p[pixel[11]] > cb)
                   if(p[pixel[12]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    continue;
                  else
@@ -5744,7 +5745,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[11]] > cb)
                  if(p[pixel[12]] > cb)
                   if(p[pixel[13]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    continue;
                  else
@@ -5759,7 +5760,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[12]] > cb)
                  if(p[pixel[13]] > cb)
                   if(p[pixel[14]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    continue;
                  else
@@ -5777,7 +5778,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[13]] > cb)
                  if(p[pixel[14]] > cb)
                   if(p[pixel[15]] > cb)
-                   {}
+                   {positive = 1;}
                   else
                    continue;
                  else
@@ -5803,16 +5804,16 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                if(p[pixel[3]] < c_b)
                 if(p[pixel[2]] < c_b)
                  if(p[pixel[1]] < c_b)
-                  {}
+                  {positive = -1;}
                  else
                   if(p[pixel[10]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    continue;
                 else
                  if(p[pixel[10]] < c_b)
                   if(p[pixel[11]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    continue;
                  else
@@ -5821,7 +5822,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[10]] < c_b)
                  if(p[pixel[11]] < c_b)
                   if(p[pixel[12]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    continue;
                  else
@@ -5833,7 +5834,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[11]] < c_b)
                  if(p[pixel[12]] < c_b)
                   if(p[pixel[13]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    continue;
                  else
@@ -5848,7 +5849,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[12]] < c_b)
                  if(p[pixel[13]] < c_b)
                   if(p[pixel[14]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    continue;
                  else
@@ -5866,7 +5867,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
                 if(p[pixel[13]] < c_b)
                  if(p[pixel[14]] < c_b)
                   if(p[pixel[15]] < c_b)
-                   {}
+                   {positive = -1;}
                   else
                    continue;
                  else
@@ -5894,6 +5895,7 @@ void fast9_detect(const byte* im, int xsize, int ysize, int stride, int b, Featu
       kp.x = x;
       kp.y = y;
       kp.idx = n++;//TRICKY post-increment
+      kp.score = positive;
 			corners.allFeatures.push_back(kp);
 
       if(corners.rowIdxs[y] == -1)

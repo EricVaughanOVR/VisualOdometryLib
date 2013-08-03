@@ -31,7 +31,7 @@ int main( int argc, char** argv )
 
   double t = (double)getTickCount();
   FeatureList corners;
-  fast9_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, corners);
+  fast10_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, corners);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout << "detection time [s]: " << t/1.0 << std::endl;
 
