@@ -1,4 +1,6 @@
 #include "CorrespondenceDefs.hpp"
+#include <xmmintrin.h>
+#include <string.h>
 
 namespace 
 {

@@ -6,7 +6,7 @@
 using namespace correspondence;
 using namespace cv;
 
-int main(int argc, char* argv)
+int main(int argc, char** argv)
 {
   Mat img = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
   //Mat img = imread("../../../Resources/ImageData/CensusTestImage_24x24.png", CV_LOAD_IMAGE_GRAYSCALE);

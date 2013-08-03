@@ -53,7 +53,7 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
   int edgeSize = static_cast<int>(cfg.patternSize * .5);
   int pxSize = cfg.pattern.size() / 8;
 
-  __m128i bitconst = {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1};
+  __m128i bitconst = _mm_set1_epi8(1);
   __m128i bitmask;
 
   for(int i = edgeSize; i < im.rows - edgeSize; ++i)

@@ -10,7 +10,7 @@
 using namespace correspondence;
 using namespace cv;
 
-int main(int argc, char* argv)
+int main(int argc, char** argv)
 {
   //Load images
   Mat matL = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);

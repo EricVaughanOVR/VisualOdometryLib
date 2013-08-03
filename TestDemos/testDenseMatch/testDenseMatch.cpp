@@ -3,6 +3,6 @@
 #include "Census.hpp"
 #include "Matcher.hpp"
 
-int main(int argc, char* argv)
+int main(int argc, char** argv)
 {
 }

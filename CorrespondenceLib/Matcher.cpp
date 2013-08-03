@@ -1,4 +1,5 @@
 #include "Matcher.hpp"
+#include <smmintrin.h>
 
 using namespace correspondence;
 
@@ -136,9 +137,8 @@ uint32_t Matcher::calcHammingDist(const uint16_t _1, const uint16_t _2)
 
 uint32_t Matcher::calcHammingDistSSE(__m128i _1, __m128i _2)
 {
-  const __m128i mask_lo = {0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 
-                           0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f, 0x0f};
-  const __m128i mask_popcnt = {0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4};
+  const __m128i mask_lo = _mm_set1_epi8(0x0f);
+  const __m128i mask_popcnt = _mm_set_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
   //Use this one if PSHUFB
   //Use PSHUFB to calculate the popcount, with a 4-bit LUT
   __m128i v = _mm_xor_si128(_1, _2);

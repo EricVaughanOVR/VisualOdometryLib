@@ -2,6 +2,7 @@
 #define MATCH_HPP
 
 #include "CorrespondenceDefs.hpp"
+#include <xmmintrin.h>
 
 class Matcher
 {
