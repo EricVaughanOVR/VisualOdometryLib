@@ -38,6 +38,10 @@ void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const 
 
   for(size_t i = 0; i < kps1.nonmaxFeatures.size(); ++i)//For each left-hand Feature
   {
+    //If kp1 is too close to edge of img
+    if(kps1.nonmaxFeatures[i].y < params.edgeSize || kps1.nonmaxFeatures[i].y > cfg.imgRows - params.edgeSize ||
+      kps1.nonmaxFeatures[i].x < params.edgeSize || kps1.nonmaxFeatures[i].x > cfg.imgCols - params.edgeSize)
+      continue;
     std::vector<KpRow> potMatches;
     getPotentialMatches(kps1.nonmaxFeatures[i], kps2, potMatches);
     
@@ -52,30 +56,33 @@ void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const 
   }
 }
 
-void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, const MatchingParams& params,
-                        std::vector<KpRow>& rPotMatches)
+void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::vector<KpRow>& rPotMatches)
 {
+  int firstRow, lastRow, firstCol, lastCol, epipolar;
+  //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
+  //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
+  //3. If Flow, choose a region surrounding the left-hand Feature and capture potential matches within it.  Then, capture all of the pixels required for an SHD of each potential match
+  if(params.mode == STEREO)
+  {
+    epipolar = static_cast<int>(params.epipolarRange * .5);
+    firstRow = kp1.y - epipolar;
+    lastRow = kp1.y + epipolar;
+    firstCol = kp1.x - params.maxDisparity;
+    lastCol = kp1.x;
+
+    if(firstRow < params.edgeSize - 1)
+      firstRow = params.edgeSize - 1;
+    if(lastRow > cfg.imgRows + params.edgeSize)
+      lastRow = cfg.imgRows + params.edgeSize;
+    if(firstCol < params.edgeSize - 1)
+      firstCol = params.edgeSize - 1;
+    if(lastCol > cfg.imgCols + params.edgeSize)
+      lastCol = cfg.imgCols + params.edgeSize;
+  }
+//  else
+  //  getPotentialFlow(kp1, kps2, cfg, params, rPotMatches);
+
   rPotMatches.clear();
-  int edgeSize = static_cast<int>(params.edgeSize);
-  //If kp1 is too close to edge of img
-  if(kp1.y < edgeSize || kp1.y > cfg.imgRows - edgeSize ||
-    kp1.x < edgeSize || kp1.x > cfg.imgCols - edgeSize)
-    return;
-
-  int epipolar = static_cast<int>(params.epipolarRange * .5);
-  int firstRow = kp1.y - epipolar;
-  int lastRow = kp1.y + epipolar;
-  int firstCol = kp1.x - params.maxDisparity;
-  int lastCol = kp1.x;
-
-  if(firstRow < edgeSize - 1)
-    firstRow = edgeSize - 1;
-  if(lastRow > cfg.imgRows + edgeSize)
-    lastRow = cfg.imgRows + edgeSize;
-  if(firstCol < edgeSize - 1)
-    firstCol = edgeSize - 1;
-  if(lastCol > cfg.imgCols + edgeSize)
-    lastCol = cfg.imgCols + edgeSize;
 
   int numRows = lastRow - firstRow + 1;
   rPotMatches.reserve(numRows);
@@ -95,23 +102,6 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
     row.end = iter;
     rPotMatches.push_back(row);
   }
-}
-
-void getPotentialFlow(const Feature& kp1, FeatureList& kps2, const CensusCfg& cfg, const MatchingParams& params,
-                      std::vector<KpRow>& rPotMatches)
-{
-
-}
-
-void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::vector<KpRow>& rPotMatches)
-{
-  //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
-  //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
-  //3. If Flow, choose a region surrounding the left-hand Feature and capture potential matches within it.  Then, capture all of the pixels required for an SHD of each potential match
-  if(params.mode == STEREO)
-    getPotentialStereo(kp1, kps2, cfg, params, rPotMatches);
-  else
-    getPotentialFlow(kp1, kps2, cfg, params, rPotMatches);
 }
 
 uint32_t Matcher::calcHammingDist(const uint16_t _1, const uint16_t _2)
