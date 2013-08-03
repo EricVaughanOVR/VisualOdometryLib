@@ -59,6 +59,7 @@ void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const 
 
 void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::vector<KpRow>& rPotMatches)
 {
+  rPotMatches.clear();
   int firstRow, lastRow, firstCol, lastCol, epipolar;
   //1. Given a matching mode and correlationWindowType, determine the image region that encloses each of the required pixels
   //2. If Stereo, choose an epipolar region, and provide room for the size of the correlation window of each contained Feature
@@ -71,19 +72,31 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
     firstCol = kp1.x - params.maxDisparity;
     lastCol = kp1.x;
 
-    if(firstRow < params.edgeSize - 1)
-      firstRow = params.edgeSize - 1;
-    if(lastRow > cfg.imgRows + params.edgeSize)
-      lastRow = cfg.imgRows + params.edgeSize;
-    if(firstCol < params.edgeSize - 1)
-      firstCol = params.edgeSize - 1;
-    if(lastCol > cfg.imgCols + params.edgeSize)
-      lastCol = cfg.imgCols + params.edgeSize;
+    if(firstRow < params.edgeSize + 1)
+      firstRow = params.edgeSize + 1;
+    if(lastRow > cfg.imgRows - params.edgeSize)
+      lastRow = cfg.imgRows - params.edgeSize;
+    if(firstCol < params.edgeSize + 1)
+      firstCol = params.edgeSize + 1;
+    if(lastCol > cfg.imgCols - params.edgeSize)
+      lastCol = cfg.imgCols - params.edgeSize;
   }
-//  else
-  //  getPotentialFlow(kp1, kps2, cfg, params, rPotMatches);
+  else
+  {
+    firstRow = kp1.y - 22;
+    lastRow = kp1.y + 22;
+    firstCol = kp1.x - 22;
+    lastCol = kp1.x + 22;
 
-  rPotMatches.clear();
+    if(firstRow < 21)
+      firstRow = 21;
+    if(lastRow > cfg.imgRows - 22)
+      lastRow = cfg.imgRows - 22;
+    if(firstCol < 21)
+      firstCol = 21;
+    if(lastCol > cfg.imgCols - 22)
+      lastCol = cfg.imgCols - 22;
+  }
 
   int rowCount = 0;
   int numRows = lastRow - firstRow + 1;
@@ -96,9 +109,9 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
     std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[i];
 
     bool beginSet = false;
-    while(iter->x <= lastCol && iter->y <= lastRow)
+    while(iter != kps2.allFeatures.end() && iter->x <= lastCol && iter->y == i)
     {
-      if(iter->x >= firstCol && iter->x <= lastCol && iter->y <= lastRow)
+      if(iter->x >= firstCol)
       {
         if(!beginSet)
         {
