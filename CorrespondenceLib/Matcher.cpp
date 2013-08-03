@@ -84,23 +84,34 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
 
   rPotMatches.clear();
 
+  int rowCount = 0;
   int numRows = lastRow - firstRow + 1;
   rPotMatches.reserve(numRows);
 
-  for(int i = 0; i < numRows; ++i)
+  for(int i = firstRow; i <= lastRow; ++i)
   {
-    KpRow row;
-    std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[kp1.y];
-    while(iter->x < firstCol)
-      ++iter;
-    if(iter->x < lastCol)
-      row.begin = iter;
-    else//No valid potential matches on this row
+    if(kps2.rowIdxs[i] < 0)//If the row is empty
       continue;
-    while(iter->x < lastCol)
+    std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[i];
+
+    bool beginSet = false;
+    do
+    {
+      if(iter->x >= firstCol && iter->x <= lastCol && iter->y <= lastRow)
+      {
+        if(!beginSet)
+        {
+          beginSet = true;
+          KpRow row;
+          row.begin = iter;
+          row.end = iter;
+          rPotMatches.push_back(row);
+        }
+        else if(rPotMatches.back().end->x < iter->x)
+          rPotMatches.back().end = iter;
+      }
       ++iter;
-    row.end = iter;
-    rPotMatches.push_back(row);
+    }while(iter->x <= lastCol && iter->y <= lastRow);//TRICKY post-script ++ is necessary
   }
 }
 
@@ -192,16 +203,14 @@ namespace
     uint8_t* pxL = census1.at(kp1.y, kp1.x);
     uint8_t* pxR = census2.at(kp2.y, kp2.x);
 
-    for(int i = 0; i < params.pattern.size(); ++i/*i += step*/)
+    for(int i = 0; i < params.pattern.size(); i += step)
     {
-      /*
+      
       uint32_t l = *(pxL + params.pattern[i]) << 24 | *(pxL + params.pattern[i] + 1) << 16 |
         *(pxL + params.pattern[i + 1]) << 8 | *(pxL + params.pattern[i + 1] + 1);
       uint32_t r = *(pxR + params.pattern[i]) << 24 | *(pxR + params.pattern[i] + 1) << 16 |
         *(pxR + params.pattern[i + 1]) << 8 | *(pxR + params.pattern[i + 1] + 1);
-        */
-      uint32_t l = *(pxL + params.pattern[i]) << 8 | *(pxL + params.pattern[i] + 1);
-      uint32_t r = *(pxR + params.pattern[i]) << 8 | *(pxR + params.pattern[i] + 1);
+        
       totalDist += _mm_popcnt_u32(l^r);
     }
 
@@ -248,6 +257,8 @@ correspondence::Match Matcher::matchFeature(const Image& census1, const Feature&
       {
         bestMatch.dist = dist;
         bestMatch.feature2Idx = iter->idx;
+        if(bestMatch.dist == 0)
+          break;
       }
     }
   }
