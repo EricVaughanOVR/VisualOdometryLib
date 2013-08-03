@@ -38,11 +38,6 @@ namespace
 
 };
 
-void censusTransform(const Image& im, Image& output, eSamplingPattern type, byte** pResult)
-{
-  //TODO determine if sse is available, then choose method of transform
-}
-
 void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
   //Copy pattern to local var

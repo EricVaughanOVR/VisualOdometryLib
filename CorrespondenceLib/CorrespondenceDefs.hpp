@@ -141,4 +141,4 @@ namespace correspondence
     std::vector<Feature>::iterator end;
   };
 };//namespace correspondence
-#endif
+#endif//CORRESPONDENCEDEFS_HPP

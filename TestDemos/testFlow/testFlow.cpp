@@ -39,13 +39,13 @@ int main(int argc, char** argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(FLOW, SPARSECW_16, 40, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(FLOW, SPARSECW_16, 30, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;
   t = (double)cv::getTickCount();
   
-  census.matchSparse(censusL, censusR, kpsL, kpsR, matches);
+  census.matchSparse(censusL, censusR, kpsL, kpsR, matches, 48);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"Matching Time "<<t/1.0<<std::endl;
   
@@ -83,6 +83,7 @@ int main(int argc, char** argv)
     namedWindow("Matches", CV_WINDOW_KEEPRATIO);
     // Draw matches
     Mat imgMatch;
+    //TODO draw lines showing the optical flow of the features
     std::vector<char> mask;
     drawMatches(matL, cvKpsL, matR, cvKpsR, dmatches, imgMatch, cv::Scalar::all(-1), cv::Scalar::all(-1), mask, 2);
     imshow("Matches", imgMatch);

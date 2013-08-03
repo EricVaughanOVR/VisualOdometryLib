@@ -7,31 +7,34 @@
 
 #include "fast.hpp"
 
-using namespace cv;
 using namespace correspondence;
-
-static void help( char** argv )
-{
-  std::cout<<"\nUsage: "<<argv[0]<<"[path/to/image]"<< std::endl;
-}
+using namespace cv;
 
 int main( int argc, char** argv ) 
 {
-  if( argc != 2 ) {
-    help(argv);
+  if( argc != 3 ) 
+  {
+    std::cout<<std::endl<<"Usage: "<<argv[0]<<"[path to image] [minimum feature response]"<< std::endl;
     return -1;
   }
 
-  // Load image
   Mat img = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
-  if( !img.data ) {
-    std::cout<< " --(!) Error reading image " << argv[1] << std::endl;
+  if( !img.data ) 
+  {
+    std::cout<< "Error reading image " << argv[1] << std::endl;
+    return -1;
+  }
+
+  int response = atoi(argv[2]);
+  if(response < 0)
+  {
+    std::cout<<"Reponse must be a positive number"<<std::endl;
     return -1;
   }
 
   double t = (double)getTickCount();
   FeatureList corners;
-  fast10_detect_both((byte*)img.data, img.cols, img.rows, img.cols, 15, corners);
+  fast10_detect_both((byte*)img.data, img.cols, img.rows, img.cols, response, corners);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout << "detection time [s]: " << t/1.0 << std::endl;
 

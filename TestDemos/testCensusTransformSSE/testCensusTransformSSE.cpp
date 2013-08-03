@@ -8,8 +8,19 @@ using namespace cv;
 
 int main(int argc, char** argv)
 {
-  Mat img = imread("../../../Resources/ImageData/TeddyLeft.png", CV_LOAD_IMAGE_GRAYSCALE);
-  //Mat img = imread("../../../Resources/ImageData/CensusTestImage_24x24.png", CV_LOAD_IMAGE_GRAYSCALE);
+  if(argc != 2)
+  {
+    std::cout<<std::endl<<"Usage: "<<argv[0]<<"[path to image]"<<std::endl;
+    return -1;
+  }
+
+  Mat img = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE);
+  if(!img.data)
+  {
+    std::cout<<"Error reading image " <<argv[1]<<std::endl;
+    return -1;
+  }
+
   double t = (double)cv::getTickCount();
   pt offset;
   offset.x = 0;

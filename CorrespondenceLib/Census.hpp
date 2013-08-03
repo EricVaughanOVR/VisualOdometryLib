@@ -3,10 +3,6 @@
 
 #include "CorrespondenceDefs.hpp"
 
-//Determines the instruction set, and calls appropriate function
-void censusTranform(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
-                    correspondence::Image& rResult);
-
 //If SSE is available
 //TRICKY: im MUST be 16-byte aligned or we will crash!
 void censusTransformSSE(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
@@ -16,6 +12,4 @@ void censusTransformSSE(const correspondence::Image& im, const correspondence::C
 void censusTransformScalar(const correspondence::Image& im, const correspondence::CensusCfg& cfg,
                            correspondence::Image& rResult);
 
-
-
-#endif
+#endif//CENSUS_HPP

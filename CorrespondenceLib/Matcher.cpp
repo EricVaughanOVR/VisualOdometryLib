@@ -4,14 +4,12 @@
 using namespace correspondence;
 
 Matcher::Matcher()
-  : hammingTfm(0, 0, 0, pt())
 {
 };
 
 Matcher::Matcher(const CensusCfg& _cfg, const MatchingParams& _params, int _rows, int _cols)
   : cfg(_cfg),
-    params(_params),
-    hammingTfm(_rows, _cols, 1, pt())
+    params(_params)
 {
 }
 
@@ -26,7 +24,7 @@ void Matcher::matchDense(const Image& censusIm1, const Image& censusIm2,
 }
 
 void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const FeatureList& kps1, 
-                 FeatureList& kps2, std::vector<Match>& rMatches)
+                 FeatureList& kps2, std::vector<Match>& rMatches, const int flowWindow)
 {
   //1. Loop through each feature from the first image
   //2. For each feature, usePrepRegion to get a list of possible matches, (Features) from the second image
@@ -44,7 +42,7 @@ void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const 
       kps1.nonmaxFeatures[i].x < params.edgeSize || kps1.nonmaxFeatures[i].x > cfg.imgCols - params.edgeSize)
       continue;
     std::vector<KpRow> potMatches;
-    getPotentialMatches(kps1.nonmaxFeatures[i], kps2, potMatches);
+    getPotentialMatches(kps1.nonmaxFeatures[i], kps2, potMatches, flowWindow);
     
     //Call matchFeature, to get the best match from the pool of potential matches
     if(!potMatches.empty())
@@ -57,7 +55,7 @@ void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const 
   }
 }
 
-void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::vector<KpRow>& rPotMatches)
+void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::vector<KpRow>& rPotMatches, const int flowWindow)
 {
   rPotMatches.clear();
   int firstRow, lastRow, firstCol, lastCol, epipolar;
@@ -83,19 +81,20 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
   }
   else
   {
-    firstRow = kp1.y - 22;
-    lastRow = kp1.y + 22;
-    firstCol = kp1.x - 22;
-    lastCol = kp1.x + 22;
+    int radius = static_cast<int>(flowWindow * .5);
+    firstRow = kp1.y - radius;
+    lastRow = kp1.y + radius;
+    firstCol = kp1.x - radius;
+    lastCol = kp1.x + radius;
 
-    if(firstRow < 21)
-      firstRow = 21;
-    if(lastRow > cfg.imgRows - 22)
-      lastRow = cfg.imgRows - 22;
-    if(firstCol < 21)
-      firstCol = 21;
-    if(lastCol > cfg.imgCols - 22)
-      lastCol = cfg.imgCols - 22;
+    if(firstRow < radius - 1)
+      firstRow = radius - 1;
+    if(lastRow > cfg.imgRows - radius)
+      lastRow = cfg.imgRows - radius;
+    if(firstCol < radius - 1)
+      firstCol = radius - 1;
+    if(lastCol > cfg.imgCols - radius)
+      lastCol = cfg.imgCols - radius;
   }
 
   int rowCount = 0;
@@ -127,60 +126,6 @@ void Matcher::getPotentialMatches(const Feature& kp1, FeatureList& kps2, std::ve
       ++iter;
     }
   }
-}
-
-uint32_t Matcher::calcHammingDist(const uint16_t _1, const uint16_t _2)
-{
-  //XOR the desc
-  uint32_t newBitStr = _1 ^ _2;
-
-  //From Bit Twiddling Hacks
-  uint32_t result; // store the total here
-  static const int S[] = {1, 2, 4, 8, 16}; // Magic Binary Numbers
-  static const int B[] = {0x55555555, 0x33333333, 0x0F0F0F0F, 0x00FF00FF, 0x0000FFFF};
-
-  result = newBitStr - ((newBitStr >> 1) & B[0]);
-  result = ((result >> S[1]) & B[1]) + (result & B[1]);
-  result = ((result >> S[2]) + result) & B[2];
-  result = ((result >> S[3]) + result) & B[3];
-  result = ((result >> S[4]) + result) & B[4];
-
-  return result;
-}
-
-uint32_t Matcher::calcHammingDistSSE(__m128i _1, __m128i _2)
-{
-  const __m128i mask_lo = _mm_set1_epi8(0x0f);
-  const __m128i mask_popcnt = _mm_set_epi8(0, 1, 1, 2, 1, 2, 2, 3, 1, 2, 2, 3, 2, 3, 3, 4);
-  //Use this one if PSHUFB
-  //Use PSHUFB to calculate the popcount, with a 4-bit LUT
-  __m128i v = _mm_xor_si128(_1, _2);
-  __m128i lo = _mm_and_si128(v, mask_lo);
-  __m128i hi = _mm_and_si128(_mm_srli_epi16(v, 4), mask_lo);
-  
-  lo = _mm_shuffle_epi8(mask_popcnt, lo);
-  hi = _mm_shuffle_epi8(mask_popcnt, hi);
-  v = _mm_add_epi8(lo, hi);
-
- const __m128i zeroes = _mm_set1_epi8(0);
- const __m128i ones = _mm_set1_epi16(1);
-
- __m128i total = _mm_set1_epi32(0);
- 
-  //Horizontal Add
-  lo = _mm_unpacklo_epi8(v, zeroes);
-  hi = _mm_unpackhi_epi8(v, zeroes);
-
-  total = _mm_add_epi32(total, _mm_madd_epi16(lo, ones));//sums adjacent u16 values and unpacks to u32
-  total = _mm_add_epi32(total, _mm_madd_epi16(hi, ones));
-  
-  //Shift the remaining entries to the least-significant entry and sum
-  total = _mm_add_epi32(total, _mm_srli_si128(total, 8));
-  total = _mm_add_epi32(total, _mm_srli_si128(total, 4));
-  
-  uint32_t popcnt = _mm_cvtsi128_si32(total);//Extract the least-significant int
-  
-  return popcnt;
 }
 
 namespace
