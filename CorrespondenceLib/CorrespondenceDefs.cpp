@@ -2,48 +2,49 @@
 
 namespace 
 {
-  void lut_sparse8(std::vector<int>& offsets, const int stride)
+  void lut_sparse8(std::vector<int>& offsets, const int stride, const int pxStep)
   {
     offsets.resize(8);
     offsets[0] = -4 * stride;
-    offsets[1] = -3 * stride - 3;
-    offsets[2] = -3 * stride + 2;
+    offsets[1] = -3 * stride - 3 * pxStep;
+    offsets[2] = -3 * stride + 2 * pxStep;
     offsets[3] = -4;
     offsets[4] = 3;
-    offsets[5] = 2 * stride + 3;
-    offsets[6] = 3 * stride - 3;
+    offsets[5] = 2 * stride + 3 * pxStep;
+    offsets[6] = 3 * stride - 3 * pxStep;
     offsets[7] = 3 * stride;
   }
 
-  void lut_sparse16(std::vector<int>& offsets, const int stride)
+  void lut_sparse16(std::vector<int>& offsets, const int stride, const int pxStep)
   {
     offsets.resize(16);
     offsets[0] = -4 * stride;
-    offsets[1] = -3 * stride - 2;
-    offsets[2] = -3 * stride + 2;
-    offsets[3] = -2 * stride - 3;
-    offsets[4] = -2 * stride - 2;
-    offsets[5] = -2 * stride + 2;
-    offsets[6] = -2 * stride + 4;
+    offsets[1] = -3 * stride - 2 * pxStep;
+    offsets[2] = -3 * stride + 2 * pxStep;
+    offsets[3] = -2 * stride - 3 * pxStep;
+    offsets[4] = -2 * stride - 2 * pxStep;
+    offsets[5] = -2 * stride + 2 * pxStep;
+    offsets[6] = -2 * stride + 4 * pxStep;
     offsets[7] = -4;
     offsets[8] = 3;
-    offsets[9] = 2 * stride - 3;
-    offsets[10] = 2 * stride + 4;
-    offsets[11] = 3 * stride - 3;
+    offsets[9] = 2 * stride - 3 * pxStep;
+    offsets[10] = 2 * stride + 4 * pxStep;
+    offsets[11] = 3 * stride - 3 * pxStep;
     offsets[12] = 3 * stride;
-    offsets[13] = 3 * stride + 3;
-    offsets[14] = 4 * stride - 2;
-    offsets[15] = 4 * stride + 2;
+    offsets[13] = 3 * stride + 3 * pxStep;
+    offsets[14] = 4 * stride - 2 * pxStep;
+    offsets[15] = 4 * stride + 2 * pxStep;
   }
 
-  void lut_dense(std::vector<int>& offsets, const int stride, const int rows, const int cols)
+  void lut_dense(std::vector<int>& offsets, const int stride, const int pxStep, 
+                 const int rows, const int cols)
   {
     offsets.resize(rows * cols);
     int row = static_cast<int>(-rows * .5);
     int col = static_cast<int>(-cols * .5);
     for(int i = 0; i < static_cast<int>(offsets.size()); ++i)
     {
-      offsets[i] = row * stride + col;
+      offsets[i] = row * stride + col * pxStep;
       if(col < static_cast<int>(cols * .5) - 1)
       {
         ++col;
@@ -113,54 +114,54 @@ namespace correspondence
   }
 
   MatchingParams::MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _filterDist, 
-                  const int _maxDisparity, const int _epipolarRange, const int _stride)
+                  const int _maxDisparity, const int _epipolarRange, const int _stride, const int _pxStep)
     : mode(_mode),
       corrType(_corrType),
       filterDist(_filterDist),
       maxDisparity(_maxDisparity),
       epipolarRange(_epipolarRange)
   {
-    prepCorrLUT(_stride);
+    prepCorrLUT(_pxStep, _stride);
   }
 
     
 
-  void MatchingParams::prepCorrLUT(const int _stride)
+  void MatchingParams::prepCorrLUT(const int _pxStep, const int _stride)
   {
     switch(corrType)
     {
     case DENSECW_13 :
-      lut_dense(pattern, _stride, 12, 13);
+      lut_dense(pattern, _stride, _pxStep, 12, 13);
       windowSize = 13;
       edgeSize = 6;
       break;
     case DENSECW_11 :
-      lut_dense(pattern, _stride, 11, 12);
+      lut_dense(pattern, _stride, _pxStep, 11, 12);
       windowSize = 12;
       edgeSize = 6;
       break;
     case DENSECW_9 :
-      lut_dense(pattern, _stride, 8, 9);
+      lut_dense(pattern, _stride, _pxStep, 8, 9);
       windowSize = 9;
       edgeSize = 4;
       break;
     case DENSECW_7 : 
-      lut_dense(pattern, _stride, 7, 8);
+      lut_dense(pattern, _stride, _pxStep, 7, 8);
       windowSize = 8;
       edgeSize = 4;
       break;
     case DENSECW_5 :
-      lut_dense(pattern, _stride, 4, 5);
+      lut_dense(pattern, _stride, _pxStep, 4, 5);
       windowSize = 5;
       edgeSize = 2;
       break;
     case SPARSECW_16 :
-      lut_sparse16(pattern, _stride);
+      lut_sparse16(pattern, _pxStep, _stride);
       windowSize = 9;
       edgeSize = 4;
       break;
     case SPARSECW_8 :
-      lut_sparse8(pattern, _stride);
+      lut_sparse8(pattern, _pxStep, _stride);
       windowSize = 9;
       edgeSize = 4;
     };
@@ -175,28 +176,28 @@ namespace correspondence
       imgStride(0)
   {}
 
-  CensusCfg::CensusCfg(const eSamplingPattern _type, const int _rows, const int _cols, const int _stride)
+  CensusCfg::CensusCfg(const eSamplingPattern _type, const int _rows, const int _cols, const int _stride, const int _pxStep)
     : type(_type),
       imgRows(_rows),
       imgCols(_cols),
       imgStride(_stride)
   {
-    prepSamplingLUT();
+    prepSamplingLUT(_pxStep);
   }
 
-  void CensusCfg::prepSamplingLUT()
+  void CensusCfg::prepSamplingLUT(const int _pxStep)
   {
     switch(type)
     {
     case SPARSE_8 :
       patternSize = 9;
       edgeSize = 4;
-      lut_sparse8(pattern, imgStride);
+      lut_sparse8(pattern, imgStride, _pxStep);
       break;
     case SPARSE_16 :
       patternSize = 9;
       edgeSize = 4;
-      lut_sparse16(pattern, imgStride);
+      lut_sparse16(pattern, imgStride, _pxStep);
       break;
     };
   } 

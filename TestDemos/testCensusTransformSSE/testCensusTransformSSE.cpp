@@ -18,9 +18,9 @@ int main(int argc, char* argv)
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"memcpy align image "<<t/1.0<<std::endl;
 
-  CensusCfg cfg(SPARSE_16, image.rows, image.cols, image.stride);
+  CensusCfg cfg(SPARSE_16, image.rows, image.cols, image.stride, image.pxStep);
 
-  Image scalarResult(img.rows, img.cols, 2, offset);//pxStep = 16 descriptor length is 16 bits
+  Image scalarResult(img.rows, img.cols, 2, offset);//pxStep = 2 descriptor length is 16 bits
  
   t = (double)cv::getTickCount();
   censusTransformScalar(image, cfg, scalarResult);

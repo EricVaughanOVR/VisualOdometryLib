@@ -56,7 +56,7 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
                         std::vector<KpRow>& rPotMatches)
 {
   rPotMatches.clear();
-  int edgeSize = static_cast<int>(cfg.patternSize * .5);
+  int edgeSize = static_cast<int>(params.edgeSize);
   //If kp1 is too close to edge of img
   if(kp1.y < edgeSize || kp1.y > cfg.imgRows - edgeSize ||
     kp1.x < edgeSize || kp1.x > cfg.imgCols - edgeSize)
@@ -82,6 +82,8 @@ void getPotentialStereo(const Feature& kp1, FeatureList& kps2, const CensusCfg& 
 
   for(int i = 0; i < numRows; ++i)
   {
+    if(kp1.y < edgeSize)
+      continue;
     KpRow row;
     std::vector<Feature>::iterator iter = kps2.allFeatures.begin() + kps2.rowIdxs[kp1.y];
     while(iter->x < firstCol)
@@ -169,60 +171,71 @@ uint32_t Matcher::calcHammingDistSSE(__m128i _1, __m128i _2)
   return popcnt;
 }
 
+namespace
+{
+  uint32_t calcSHD_1B(const Image& census1, const Image& census2,
+                 const Feature& kp1, const Feature& kp2, const MatchingParams& params)
+  {
+    int step = 4;
+    int totalDist = 0;
+
+    uint8_t* pxL = census1.at(kp1.y, kp1.x);
+    uint8_t* pxR = census2.at(kp2.y, kp2.x);
+
+    for(int i = 0; i < params.pattern.size(); i += step)
+    {
+      uint32_t l = *(pxL + params.pattern[i]) << 24 | *(pxL + params.pattern[i + 1]) << 16 |
+        *(pxL + params.pattern[i + 2]) << 8 | *(pxL + params.pattern[i + 3]);
+      uint32_t r = *(pxR + params.pattern[i])  << 24 | *(pxR + params.pattern[i + 1]) << 16 |
+        *(pxR + params.pattern[i + 2]) << 8 | *(pxR + params.pattern[i + 3]);
+
+      totalDist += _mm_popcnt_u32(l^r);
+    }
+
+    return totalDist;
+  }
+
+  uint32_t calcSHD_2B(const Image& census1, const Image& census2,
+                 const Feature& kp1, const Feature& kp2, const MatchingParams& params)
+  {
+    int step = 2;
+    int totalDist = 0;
+
+    uint8_t* pxL = census1.at(kp1.y, kp1.x);
+    uint8_t* pxR = census2.at(kp2.y, kp2.x);
+
+    for(int i = 0; i < params.pattern.size(); ++i/*i += step*/)
+    {
+      /*
+      uint32_t l = *(pxL + params.pattern[i]) << 24 | *(pxL + params.pattern[i] + 1) << 16 |
+        *(pxL + params.pattern[i + 1]) << 8 | *(pxL + params.pattern[i + 1] + 1);
+      uint32_t r = *(pxR + params.pattern[i]) << 24 | *(pxR + params.pattern[i] + 1) << 16 |
+        *(pxR + params.pattern[i + 1]) << 8 | *(pxR + params.pattern[i + 1] + 1);
+        */
+      uint32_t l = *(pxL + params.pattern[i]) << 8 | *(pxL + params.pattern[i] + 1);
+      uint32_t r = *(pxR + params.pattern[i]) << 8 | *(pxR + params.pattern[i] + 1);
+      totalDist += _mm_popcnt_u32(l^r);
+    }
+
+    return totalDist;
+  }
+
+};
+
 uint32_t Matcher::calcSHD(const Image& census1, const Image& census2,
                  const Feature& kp1, const Feature& kp2)
 {
   //1. For each pixel in the correlationWindow of each image, calculate the Hamming Distance and add it to the total
   //2. When finished, return the total
-
-  int step = 4 / census1.pxStep;//TRICKY pxStep must be < 4, or div by zero
-  int totalDist = 0;
-
-  for(int i = -params.edgeSize; i < params.edgeSize; ++i)
-  {
-
-    /*//Load a row into a register and shift it so that the data matches the window size
-    __m128i _1 = _mm_loadu_si128((__m128i*)census1.at(kp1.y + i, kp1.x));
-    __m128i _2 = _mm_loadu_si128((__m128i*)census2.at(kp2.y + i, kp2.x));
-    
-    
-    switch(params.windowSize)
-    {
-    case 13:
-      _1 = _mm_srli_si128(_1, 3);
-      _2 = _mm_srli_si128(_2, 3);
-      break;
-    case 11:
-      _1 = _mm_srli_si128(_1, 5);
-      _2 = _mm_srli_si128(_2, 5);
-      break;
-    case 9:
-      _1 = _mm_srli_si128(_1, 7);
-      _2 = _mm_srli_si128(_2, 7);
-      break;
-    case 7:
-      _1 = _mm_srli_si128(_1, 9);
-      _2 = _mm_srli_si128(_2, 9);
-      break;
-    case 5:
-      _1 = _mm_srli_si128(_1, 11);
-      _2 = _mm_srli_si128(_2, 11);
-    }
-
-    totalDist += calcHammingDistSSE(_1, _2);*/
-
-    for(int j = -params.edgeSize; j < params.edgeSize; j += step)
-    {
-      uint8_t* pxL = census1.at(kp1.y + i, kp1.x + j);
-      uint8_t* pxR = census2.at(kp2.y + i, kp2.x + j);
-
-      uint32_t l = *pxL << 24 | *(pxL + 1) << 16 | *(pxL + 2) << 8 | *(pxL + 3);
-      uint32_t r = *pxR << 24 | *(pxR + 1) << 16 | *(pxR + 2) << 8 | *(pxR + 3);
-
-      totalDist += _mm_popcnt_u32(l^r);
-    }
-  }
   
+  uint32_t totalDist;
+
+  //TRICKY only supporting pxStep of either 2 or 4 right now
+  if(census1.pxStep == 2)
+    totalDist = calcSHD_2B(census1, census2, kp1, kp2, params);
+  else if(census2.pxStep == 1)
+    totalDist = calcSHD_1B(census1, census2, kp1, kp2, params);
+
   return totalDist;
 }
 
@@ -239,7 +252,9 @@ correspondence::Match Matcher::matchFeature(const Image& census1, const Feature&
   {
     for(std::vector<Feature>::iterator iter = potMatches[i].begin; iter != potMatches[i].end; ++iter)
     {
-      //TODO Use FAST score to reject bad matches out-of-hand
+      //Use FAST score to reject obviously bad matches out-of-hand
+      if((kp1.score < 0 && iter->score > 0) || (kp1.score > 0 && iter->score < 0))
+        continue;
       int dist = static_cast<int>(calcSHD(census1, census2, kp1, *iter));
       if(bestMatch.dist > dist)
       {

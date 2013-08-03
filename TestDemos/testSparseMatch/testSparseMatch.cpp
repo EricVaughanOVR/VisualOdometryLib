@@ -21,7 +21,7 @@ int main(int argc, char* argv)
   Image imageL(matL.rows, matL.cols, 1, offset, (byte*)matL.data);
   Image imageR(matR.rows, matR.cols, 1, offset, (byte*)matR.data);
 
-  CensusCfg cfg(SPARSE_16, imageL.rows, imageL.cols, imageL.stride);
+  CensusCfg cfg(SPARSE_16, imageL.rows, imageL.cols, imageL.stride, imageL.pxStep);
 
   //Do Census Transform
   double t = (double)cv::getTickCount();
@@ -39,7 +39,7 @@ int main(int argc, char* argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, DENSECW_11, 30, static_cast<int>(imageL.cols * .1), 1, censusL.stride);
+  MatchingParams params(STEREO, DENSECW_11, 20, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;

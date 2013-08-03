@@ -92,9 +92,9 @@ namespace correspondence
     MatchingParams();
 
     MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _filterDist, 
-                   const int _maxDisparity, const int _epipolarRange, const int _stride);
+                   const int _maxDisparity, const int _epipolarRange, const int _stride, const int _pxStep);
 
-    void prepCorrLUT(const int _stride);
+    void prepCorrLUT(const int _pxStep, const int _stride);
 
     //Flow or Stereo
     eMatchMode mode;
@@ -119,9 +119,9 @@ namespace correspondence
   public:
     CensusCfg();
 
-    CensusCfg(const eSamplingPattern _type, const int _rows, const int _cols, const int _stride);
+    CensusCfg(const eSamplingPattern _type, const int _rows, const int _cols, const int _stride, const int _pxStep);
 
-    void prepSamplingLUT();
+    void prepSamplingLUT(const int _pxStep);
 
     //Use what sampling pattern
     eSamplingPattern type;
