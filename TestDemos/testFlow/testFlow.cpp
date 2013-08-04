@@ -37,12 +37,12 @@ int main(int argc, char** argv)
   Image imageL(matL.rows, matL.cols, 1, offset, (byte*)matL.data);
   Image imageR(matR.rows, matR.cols, 1, offset, (byte*)matR.data);
 
-  CensusCfg cfg(SPARSE_16, imageL.rows, imageL.cols, imageL.stride, imageL.pxStep);
+  CensusCfg cfg(SPARSE_8, imageL.rows, imageL.cols, imageL.stride, imageL.pxStep);
 
   //Do Census Transform
   double t = (double)cv::getTickCount();
-  Image censusL(matL.rows, matL.cols, 2/*size of descriptor in bytes*/, offset);
-  Image censusR(matR.rows, matR.cols, 2/*size of descriptor in bytes*/, offset);
+  Image censusL(matL.rows, matL.cols, 1/*size of descriptor in bytes*/, offset);
+  Image censusR(matR.rows, matR.cols, 1/*size of descriptor in bytes*/, offset);
   t = (double)cv::getTickCount();
   censusTransformSSE(imageL, cfg, censusL);
   censusTransformSSE(imageR, cfg, censusR);
@@ -51,17 +51,17 @@ int main(int argc, char** argv)
 
   //Do Feature Detection
   FeatureList kpsL, kpsR;
-  fast10_detect_both(imageL.data, imageL.cols, imageL.rows, imageL.stride, 15, kpsL);
-  fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
+  fast10_detect_both(imageL.data, imageL.cols, imageL.rows, imageL.stride, 8, kpsL);
+  fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 8, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(FLOW, SPARSECW_16, 40, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(FLOW, SPARSECW_16, 30, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;
   t = (double)cv::getTickCount();
   
-  census.matchSparse(censusL, censusR, kpsL, kpsR, matches, 48);
+  census.matchSparse(censusL, censusR, kpsL, kpsR, matches, 36);
   t = ((double)getTickCount() - t)/getTickFrequency();
   std::cout<<"Matching Time "<<t/1.0<<std::endl;
   
