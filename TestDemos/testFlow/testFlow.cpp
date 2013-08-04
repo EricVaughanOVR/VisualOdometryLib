@@ -3,6 +3,7 @@
 #include "fast.hpp"
 #include "Matcher.hpp"
 #include <iostream>
+#include <opencv2/imgproc/imgproc.hpp>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
@@ -24,7 +25,7 @@ int main(int argc, char** argv)
     std::cout<< "Error reading image " << argv[1] << std::endl;
     return -1;
   }
-  Mat matR = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+  Mat matR = imread(argv[2], CV_LOAD_IMAGE_GRAYSCALE );
   if( !matR.data ) 
   {
     std::cout<< "Error reading image " << argv[2] << std::endl;
@@ -54,7 +55,7 @@ int main(int argc, char** argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(FLOW, SPARSECW_16, 30, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(FLOW, SPARSECW_16, 40, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;
@@ -98,9 +99,12 @@ int main(int argc, char** argv)
     namedWindow("Matches", CV_WINDOW_KEEPRATIO);
     // Draw matches
     Mat imgMatch;
-    //TODO draw lines showing the optical flow of the features
-    std::vector<char> mask;
-    drawMatches(matL, cvKpsL, matR, cvKpsR, dmatches, imgMatch, cv::Scalar::all(-1), cv::Scalar::all(-1), mask, 2);
+    cvtColor(matL, imgMatch, CV_GRAY2RGB);
+    
+    for(size_t i = 0; i < matches.size(); ++i)
+    {
+      line(imgMatch, cvKpsL[matches[i].feature1Idx].pt, cvKpsR[matches[i].feature2Idx].pt, CV_RGB(255, 0, 0), 1);
+    }
     imshow("Matches", imgMatch);
     waitKey(0);
   }
