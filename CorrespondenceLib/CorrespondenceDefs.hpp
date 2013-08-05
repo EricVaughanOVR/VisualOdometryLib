@@ -30,6 +30,8 @@ namespace correspondence
 
     ~Image();
 
+    Image& operator=(const Image& other);
+
     inline void zeroMem();
 
     inline byte* at(const int _row, const int _col) const

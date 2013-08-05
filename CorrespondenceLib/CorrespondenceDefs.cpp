@@ -99,6 +99,26 @@ namespace correspondence
     _mm_free(data);
   }
 
+  Image& Image::operator=(const Image& other)
+  {
+    if(other.offset.x != 0 || other.offset.y != 0)
+      return *this;
+    if(rows != other.rows || cols != other.cols || stride != other.stride ||
+      pxStep != other.pxStep)
+    {
+      _mm_free(data);
+      data = (byte*)_mm_malloc(other.stride * other.rows * other.pxStep, 16);
+      rows = other.rows;
+      cols = other.cols;
+      stride = other.stride;
+      offset = other.offset;
+      pxStep = other.pxStep;
+    }
+    //TODO Figure out a more elgant way to update from a buffer while keeping data aligned.  Probably smart pointers.
+    memcpy(data, other.data, other.stride * other.rows * other.pxStep);
+    return *this;
+  }
+
   void Image::zeroMem()
   {
     memset(data, 0, stride * rows * sizeof(byte));     

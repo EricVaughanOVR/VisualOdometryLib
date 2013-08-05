@@ -19,13 +19,13 @@ int main(int argc, char** argv)
     return -1;
   }
 
-  Mat matL = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
+  Mat matL = imread(argv[2], CV_LOAD_IMAGE_GRAYSCALE );
   if( !matL.data ) 
   {
     std::cout<< "Error reading image " << argv[1] << std::endl;
     return -1;
   }
-  Mat matR = imread(argv[2], CV_LOAD_IMAGE_GRAYSCALE );
+  Mat matR = imread(argv[1], CV_LOAD_IMAGE_GRAYSCALE );
   if( !matR.data ) 
   {
     std::cout<< "Error reading image " << argv[2] << std::endl;
@@ -67,33 +67,6 @@ int main(int argc, char** argv)
   
   std::cout<<"Number of matches: "<<matches.size()<<std::endl;
 
-  std::vector<cv::DMatch> dmatches;
-  std::vector<KeyPoint> cvKpsL, cvKpsR;
-
-  for(size_t i = 0; i < matches.size(); ++i)
-  {
-    DMatch _match;
-    _match.queryIdx = matches[i].feature1Idx;
-    _match.trainIdx = matches[i].feature2Idx;
-    dmatches.push_back(_match);
-  }
-
-  for(size_t i = 0; i < kpsL.allFeatures.size(); ++i)
-  {
-    KeyPoint kp;
-    kp.pt.x = static_cast<float>(kpsL.allFeatures[i].x);
-    kp.pt.y = static_cast<float>(kpsL.allFeatures[i].y);
-    cvKpsL.push_back(kp);
-  }
-
-  for(size_t i = 0; i < kpsR.allFeatures.size(); ++i)
-  {
-    KeyPoint kp;
-    kp.pt.x = static_cast<float>(kpsR.allFeatures[i].x);
-    kp.pt.y = static_cast<float>(kpsR.allFeatures[i].y);
-    cvKpsR.push_back(kp);
-  }
-
   if(!matches.empty())
   {
     namedWindow("Matches", CV_WINDOW_KEEPRATIO);
@@ -103,7 +76,12 @@ int main(int argc, char** argv)
     
     for(size_t i = 0; i < matches.size(); ++i)
     {
-      line(imgMatch, cvKpsL[matches[i].feature1Idx].pt, cvKpsR[matches[i].feature2Idx].pt, CV_RGB(255, 0, 0), 1);
+      line(imgMatch, 
+        cv::Point(kpsL.allFeatures[matches[i].feature1Idx].x, 
+                  kpsL.allFeatures[matches[i].feature1Idx].y),
+        cv::Point(kpsR.allFeatures[matches[i].feature2Idx].x, 
+                  kpsR.allFeatures[matches[i].feature2Idx].y),
+        CV_RGB(255, 0, 0), 1);
     }
     imshow("Matches", imgMatch);
     waitKey(0);

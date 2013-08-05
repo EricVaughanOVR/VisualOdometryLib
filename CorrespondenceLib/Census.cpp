@@ -40,6 +40,7 @@ namespace
 
 void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
+  Image census(rResult.rows, rResult.cols, rResult.pxStep, rResult.offset);
   //Copy pattern to local var
   std::vector<int> offsetsLUT;
   offsetsLUT.insert(offsetsLUT.end(), cfg.pattern.begin(), cfg.pattern.end());
@@ -56,7 +57,7 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
     for(int j = 0; j < im.stride; j += 16)//Will always divide evenly
     {
       //struct 'Image' ensures that each row is always aligned
-      __m128i* resultPtr = (__m128i*)(rResult.at(i, j));
+      __m128i* resultPtr = (__m128i*)(census.at(i, j));
       __m128i* objectPx = (__m128i*)im.at(i, j);
     
       bitmask = bitconst;
@@ -78,15 +79,17 @@ void censusTransformSSE(const Image& im, const CensusCfg& cfg, Image& rResult)
           bitCount = 0;
         }
       }
-      //Store the result into rResult
+      //Store the result into census
       if(cfg.type == SPARSE_16)
-        storeSSE16((__m128i*)rResult.at(i, j), (__m128i*)rResult.at(i, j));
+        storeSSE16((__m128i*)census.at(i, j), (__m128i*)census.at(i, j));
     }
   }
+  rResult = census;
 }
 
 void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult)
 {
+  Image census(rResult.rows, rResult.cols, rResult.pxStep, rResult.offset);
   int edgeSize = static_cast<int>(cfg.patternSize * .5);
   int pxSize = cfg.pattern.size() / 8;
 
@@ -95,7 +98,7 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
   for(int i = edgeSize; i < im.rows - edgeSize; ++i)
   {
     //Set resultPtr to beginning of the row
-    resultPtr = rResult.at(i, edgeSize * pxSize);
+    resultPtr = census.at(i, edgeSize * pxSize);
     for(int j = edgeSize; j < im.cols - edgeSize; ++j)
     {
       //Now we have chosen a pixel to examine
@@ -103,4 +106,5 @@ void censusTransformScalar(const Image& im, const CensusCfg& cfg, Image& rResult
       censusTransformSinglePx(im.at(i, j), cfg.pattern, &resultPtr);
     }
   }
+  rResult = census;
 }
