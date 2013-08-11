@@ -50,7 +50,8 @@ int main(int argc, char** argv)
   std::cout<<"SSE Census Transform "<<t/1.0<<std::endl;
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, DENSECW_9, 11, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(STEREO, DENSECW_13, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  params.constEpsilon = 1;
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   Image denseMap(censusL.rows, censusL.cols, 1, pt());

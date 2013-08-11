@@ -75,7 +75,7 @@ void Matcher::matchDense(const Image& censusIm1, const Image& censusIm2,
             bestScore = thisScore;
           }
         }
-        if(bestMatch == bestMatchRL)
+        if(bestMatch <= bestMatchRL + params.constEpsilon && bestMatch >= bestMatchRL - params.constEpsilon)
           *rDenseMap.at(i, j) = bestMatch * (255 / params.maxDisparity);  
       }
     }

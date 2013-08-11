@@ -93,8 +93,8 @@ namespace correspondence
   {
     MatchingParams();
 
-    MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _filterDist, 
-                   const int _maxDisparity, const int _epipolarRange, const int _stride, const int _pxStep);
+    MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _maxDisparity, 
+      const int _epipolarRange, const int _stride, const int _pxStep);
 
     void prepCorrLUT(const int _pxStep, const int _stride);
 
@@ -108,12 +108,14 @@ namespace correspondence
     int edgeSize;
     //Sampling pattern of the correlation window
     std::vector<int> pattern;
-    //What is the maximum normalized Hamming Distance to accept?
+    //What is the maximum normalized Hamming Distance to accept?  OPTIONAL PARAM.  Use for sparse only
     int filterDist;
     //Disparity constraint in pixels
     int maxDisparity;
     //Epsilon for epipolar constraint, in pixels
     int epipolarRange;
+    //Dense consistency check epsilon.  OPTIONAL PARAM.  Use for dense only
+    int constEpsilon;
   };
 
   class CensusCfg

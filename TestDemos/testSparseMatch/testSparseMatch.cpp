@@ -55,7 +55,8 @@ int main(int argc, char** argv)
   fast10_detect_both(imageR.data, imageR.cols, imageR.rows, imageR.stride, 15, kpsR);
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, SPARSECW_16, 11, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(STEREO, SPARSECW_16, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  params.filterDist = 11;
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   std::vector<Match> matches;

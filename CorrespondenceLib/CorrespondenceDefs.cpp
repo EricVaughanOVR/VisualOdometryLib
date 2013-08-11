@@ -135,11 +135,10 @@ namespace correspondence
   {
   }
 
-  MatchingParams::MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _filterDist, 
-                  const int _maxDisparity, const int _epipolarRange, const int _stride, const int _pxStep)
+  MatchingParams::MatchingParams(const eMatchMode _mode, const eCorrelationWindow _corrType, const int _maxDisparity, 
+    const int _epipolarRange, const int _stride, const int _pxStep)
     : mode(_mode),
       corrType(_corrType),
-      filterDist(_filterDist),
       maxDisparity(_maxDisparity),
       epipolarRange(_epipolarRange)
   {
