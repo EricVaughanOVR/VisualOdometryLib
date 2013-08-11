@@ -50,7 +50,7 @@ int main(int argc, char** argv)
   std::cout<<"SSE Census Transform "<<t/1.0<<std::endl;
 
   //Do Stereo Matching
-  MatchingParams params(STEREO, DENSECW_13, 1000, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
+  MatchingParams params(STEREO, DENSECW_9, 11, static_cast<int>(imageL.cols * .1), 1, censusL.stride, censusL.pxStep);
   Matcher census(cfg, params, imageL.rows, imageL.cols);
 
   Image denseMap(censusL.rows, censusL.cols, 1, pt());
@@ -62,7 +62,7 @@ int main(int argc, char** argv)
 
   cv::namedWindow("Dense Depth Map", CV_WINDOW_KEEPRATIO);
   // Draw matches
-  Mat depthMat(Size(denseMap.rows, denseMap.cols), CV_8U, denseMap.data, denseMap.stride);
+  Mat depthMat(denseMap.rows, denseMap.cols, CV_8U, denseMap.data, denseMap.stride);
   imshow("Dense Depth Map", depthMat);
   waitKey(0);
 

@@ -31,30 +31,55 @@ void Matcher::matchDense(const Image& censusIm1, const Image& censusIm2,
       kp2.x = j;
       kp2.y = i;
 
-      int bestMatch = 3000, secondBestMatch = 3000, bestScore = 3000, secondBestScore = 3000;//These store the disparity and score of the 2 best matches for the left-image pixel
+      int bestMatchRL = 3000, bestMatch = 3000, bestScore = 3000, secondBestScore = 3000, thirdBestScore = 3000;//These store the disparity and score of the 2 best matches for the left-image pixel
       for(int k = 0; k < params.maxDisparity; ++k)//For each potential match
       {
         kp2.x = j - k;
 
+        if(kp2.x < params.edgeSize)
+          break;
+
         int thisScore = calcSHD(censusIm1, censusIm2, kp1, kp2);
         if(thisScore <= bestScore)
         {
-          secondBestMatch = bestMatch;
+          thirdBestScore = secondBestScore;
           secondBestScore = bestScore;
           bestMatch = k;
           bestScore = thisScore;
         }
-        else if(thisScore < secondBestScore)
+        else if(thisScore <+ secondBestScore)
         {
-          secondBestMatch = k;
+          thirdBestScore = secondBestScore;
           secondBestScore = thisScore;
         }
+        else if(thisScore <+ thirdBestScore)
+          thirdBestScore = thisScore;
       }
-      //if(static_cast<float>(bestScore) < static_cast<float>(0.7 * secondBestScore))
-        *rDenseMap.at(i, j) = bestMatch * (255 / params.maxDisparity);
+      if(bestScore < thirdBestScore)
+      {
+        kp1.x = j - bestMatch;//Checking consistency from the vantage-point of the chosen Right-Image pixel
+        kp2.x = kp1.x;
+        bestScore = 3000;
+        //L-R Consistency Check
+        for(int k = 0; k < params.maxDisparity; ++k)//For each potential match
+        {
+          kp2.x = kp1.x + k;
+
+          if(kp2.x > params.edgeSize + censusIm1.cols)
+            break;
+
+          int thisScore = calcSHD(censusIm2, censusIm1, kp1, kp2);
+          if(thisScore <= bestScore)
+          {
+            bestMatchRL = k;
+            bestScore = thisScore;
+          }
+        }
+        if(bestMatch == bestMatchRL)
+          *rDenseMap.at(i, j) = bestMatch * (255 / params.maxDisparity);  
+      }
     }
   }
-
 }
 
 void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const FeatureList& kps1, 
