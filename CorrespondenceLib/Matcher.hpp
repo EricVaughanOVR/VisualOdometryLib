@@ -15,7 +15,7 @@ public:
   ~Matcher();
   
   void matchDense(const correspondence::Image& censusIm1, const correspondence::Image& censusIm2,
-                  std::vector<correspondence::Match>& rMatches);
+                  correspondence::Image& rDenseMap);
 
   void matchSparse(const correspondence::Image& censusIm1, const correspondence::Image& censusIm2,
                     const correspondence::FeatureList& kps1, correspondence::FeatureList& kps2, 

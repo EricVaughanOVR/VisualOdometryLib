@@ -18,16 +18,50 @@ Matcher::~Matcher()
 }
 
 void Matcher::matchDense(const Image& censusIm1, const Image& censusIm2,
-                         std::vector<correspondence::Match>& rMatches)
+                         Image& rDenseMap)
 {
-  //Implement the moving window technique for computing dense disparity maps, as described in 'Fast Census Transform-based Stereo Algorithm using SSE2'
+  //TODO Implement the moving window technique for computing dense disparity maps, as described in 'Fast Census Transform-based Stereo Algorithm using SSE2'
+  for(int i = params.edgeSize; i < censusIm1.rows - params.edgeSize; ++i)//For each row
+  {
+    for(int j = params.edgeSize; j < censusIm1.cols - params.edgeSize; ++j)//For each col
+    {
+      Feature kp1, kp2;
+      kp1.x = j;
+      kp1.y = i;
+      kp2.x = j;
+      kp2.y = i;
+
+      int bestMatch = 3000, secondBestMatch = 3000, bestScore = 3000, secondBestScore = 3000;//These store the disparity and score of the 2 best matches for the left-image pixel
+      for(int k = 0; k < params.maxDisparity; ++k)//For each potential match
+      {
+        kp2.x = j - k;
+
+        int thisScore = calcSHD(censusIm1, censusIm2, kp1, kp2);
+        if(thisScore <= bestScore)
+        {
+          secondBestMatch = bestMatch;
+          secondBestScore = bestScore;
+          bestMatch = k;
+          bestScore = thisScore;
+        }
+        else if(thisScore < secondBestScore)
+        {
+          secondBestMatch = k;
+          secondBestScore = thisScore;
+        }
+      }
+      //if(static_cast<float>(bestScore) < static_cast<float>(0.7 * secondBestScore))
+        *rDenseMap.at(i, j) = bestMatch * (255 / params.maxDisparity);
+    }
+  }
+
 }
 
 void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const FeatureList& kps1, 
                  FeatureList& kps2, std::vector<Match>& rMatches, const int flowWindow)
 {
   //1. Loop through each feature from the first image
-  //2. For each feature, usePrepRegion to get a list of possible matches, (Features) from the second image
+  //2. For each feature, use getPotentialMatches to get a list of possible matches, (Features) from the second image
   //3. Compare each possible match to the left-hand feature, using calcSHD
   //4. Keep track of the right-hand Feature with the smallest SHD
   //5. At the end, if the best feature is within epsilon (normalize for descriptor length) then add it to rMatches
@@ -49,6 +83,7 @@ void Matcher::matchSparse(const Image& censusIm1, const Image& censusIm2, const 
     {
       Match match = matchFeature(censusIm1, kps1.nonmaxFeatures[i], censusIm2, potMatches);
       //If the match is high-enough quality, add it to rMatches
+      //TODO add uniqueness check
       if(match.dist < params.filterDist)
         rMatches.push_back(match);
     }
@@ -194,7 +229,7 @@ uint32_t Matcher::calcSHD(const Image& census1, const Image& census2,
   return totalDist;
 }
 
-correspondence::Match Matcher::matchFeature(const Image& census1, const Feature& kp1, const Image& census2, 
+Match Matcher::matchFeature(const Image& census1, const Feature& kp1, const Image& census2, 
                                    const std::vector<KpRow>& potMatches)
 {
   //1. For each possible matching Feature from the right-hand window, compute the SHD
